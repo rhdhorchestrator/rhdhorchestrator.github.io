@@ -19,6 +19,7 @@ This document provides solutions to common problems encountered with serverless 
 6. [Network Problems](#network-problems)
 7. [Common Scenarios](#common-scenarios)
 8. [Contact Support](#contact-support)
+9. [Air Gapped Problems](#air-gapped-problems)
 
 ---
 
@@ -107,3 +108,28 @@ PostgreSQL namespace allow ingress from the Sonataflow services namespace
 (e.g., `sonataflow-infra`). Without appropriate ingress rules,
 network policies may prevent the `DataIndex` and `JobService` pods from
 connecting to the database.
+
+
+## Air Gapped Problems
+
+### Problem: Cluster is unable to pull images due to air gapped environment
+
+**Solution:**
+Create an `ImageDigestMirrorSet` manifest that references the external images to a local registry inside the air gapped environment following the instructions described [here](https://docs.openshift.com/container-platform/4.17/rest_api/config_apis/imagedigestmirrorset-config-openshift-io-v1.html). This manifest configures the cluster to use mirror locations usingn digest pull specifications, which will enable it to pull the images from the mirrored location accessible to the cluster.
+
+Example:
+
+```yaml
+kind: ImageDigestMirrorSet
+apiVersion: config.openshift.io/v1
+metadata:
+  name: rhdhorchestrator-mirror
+spec:
+  imageDigestMirrors:
+    - source: registry.redhat.io/openshift4/ose-cli
+      mirrors:
+        - registry.localhost.net/ose-cli
+    - source: registry.access.redhat.com/ubi9-minimal
+      mirrors:
+        - registry.localhost.net/ubi9-minimal
+```
