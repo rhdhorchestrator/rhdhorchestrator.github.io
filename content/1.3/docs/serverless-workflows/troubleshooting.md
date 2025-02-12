@@ -19,6 +19,7 @@ This document provides solutions to common problems encountered with serverless 
 6. [Network Problems](#network-problems)
 7. [Common Scenarios](#common-scenarios)
 8. [Contact Support](#contact-support)
+9. [Air Gapped Problems](#air-gapped-problems)
 
 ---
 
@@ -107,3 +108,122 @@ PostgreSQL namespace allow ingress from the Sonataflow services namespace
 (e.g., `sonataflow-infra`). Without appropriate ingress rules,
 network policies may prevent the `DataIndex` and `JobService` pods from
 connecting to the database.
+
+
+## Air Gapped Problems
+
+### Problem: Cluster is unable to pull images due to air gapped environment
+
+**Solution:**
+Create an `ImageDigestMirrorSet` manifest that references the external images to a local registry inside the air gapped environment following the instructions described [here](https://docs.openshift.com/container-platform/4.17/rest_api/config_apis/imagedigestmirrorset-config-openshift-io-v1.html). This manifest configures the cluster to use mirror locations using digest pull specifications, which will enable it to pull the images from the mirrored location accessible to the cluster.
+
+The following manifest is an example that references a local mirror located at `registry.localhost.net`.
+
+```yaml
+kind: ImageDigestMirrorSet
+apiVersion: config.openshift.io/v1
+metadata:
+  name: rhdhorchestrator-mirror
+spec:
+  imageDigestMirrors:
+    # Orchestrator
+    - source: registry.redhat.io/rhdh-orchestrator-dev-preview-beta/controller-rhel9-operator
+      mirrors:
+        - registry.localhost.net/rhdh-orchestrator-dev-preview-beta/controller-rhel9-operator
+    - source: registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle
+      mirrors:
+        - registry.localhost.net/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle
+    # Chart deployment
+    - source: registry.redhat.io/openshift4/ose-cli
+      mirrors:
+        - registry.localhost.net/ose-cli
+    - source: registry.access.redhat.com/ubi9-minimal
+      mirrors:
+        - registry.localhost.net/ubi9-minimal
+    # Serverless workflows
+    - source: registry.redhat.io/openshift-serverless-1/logic-rhel8-operator
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/logic-rhel8-operator
+    - source: registry.redhat.io/openshift-serverless-1/logic-jobs-service-postgresql-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/logic-jobs-service-postgresql-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/logic-jobs-service-ephemeral-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/logic-jobs-service-ephemeral-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/logic-data-index-postgresql-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/logic-data-index-postgresql-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/logic-data-index-ephemeral-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/logic-data-index-ephemeral-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/logic-swf-builder-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/logic-swf-builder-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/logic-swf-devmode-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/logic-swf-devmode-rhel8
+    # RHDH
+    - source: registry.redhat.io/rhdh/rhdh-rhel9-operator
+      mirrors:
+        - registry.localhost.net/rhdh/rhdh-rhel9-operator
+    - source: registry.redhat.io/rhdh/rhdh-operator-bundle
+      mirrors:
+        - registry.localhost.net/rhdh/rhdh-operator-bundle
+    - source: registry.redhat.io/rhdh/rhdh-hub-rhel9
+      mirrors:
+        - registry.localhost.net/rhdh/rhdh-hub-rhel9
+    # Knative Serving
+    - source: registry.redhat.io/openshift-serverless-1/kn-serving-activator-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-serving-activator-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-serving-autoscaler-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-serving-autoscaler-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-serving-autoscaler-hpa-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-serving-autoscaler-hpa-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-serving-controller-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-serving-controller-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-serving-webhook-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-serving-webhook-rhel8
+    # Knative Serving Ingress
+    - source: registry.redhat.io/openshift-serverless-1/kourier-control-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kourier-control-rhel8
+    - source: registry.redhat.io/openshift-service-mesh/proxyv2-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-service-mesh/proxyv2-rhel8
+    # Knative Eventing
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-controller-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-controller-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-apiserver-receive-adapter-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-apiserver-receive-adapter-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-webhook-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-webhook-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-channel-controller-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-channel-controller-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-channel-dispatcher-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-channel-dispatcher-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-jobsink-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-jobsink-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-mtchannel-broker-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-mtchannel-broker-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-filter-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-filter-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-ingress-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-ingress-rhel8
+    - source: registry.redhat.io/openshift-serverless-1/kn-eventing-mtping-rhel8
+      mirrors:
+        - registry.localhost.net/openshift-serverless-1/kn-eventing-mtping-rhel8
+```
