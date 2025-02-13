@@ -22,6 +22,10 @@ The v1alpha2 version of [Orchestrator CRD](https://github.com/rhdhorchestrator/o
 - rhdhPlugins.signalsBackend.integrity
 - rhdhPlugins.notificationsEmail.package
 - rhdhPlugins.notificationsEmail.integrity
+
+## Renamed Fields
+- sonataFlowOperator.subscription.source
+- serverlessOperator.subscription.source
   
 
 The following Orchestrator CR is an sample of the api v1alpha2 version.
