@@ -7,11 +7,21 @@ The v1alpha2 version of [Orchestrator CRD](https://github.com/rhdhorchestrator/o
 
 
 ## New Fields
+In OSL 1.35, these new features are introduced:
+1. Support for [Workflow Monitoring](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4/html/release_notes/technology-preview#technology-preview)
+2. Support for [Knative Eventing](https://sonataflow.org/serverlessworkflow/main/cloud/operator/configuring-knative-eventing-resources.html)
+
+Hence, the CRD schema extends to allow configuration for these features by the user. 
+
 - orchestrator.sonataflowPlatform.monitoring.enabled
 - orchestrator.sonataflowPlatform.eventing.broker.name
 - orchestrator.sonataflowPlatform.eventing.broker.namespace
 
 ## Deleted Fields
+In [RHDH 1.4](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4/html/release_notes/technology-preview#technology-preview), the notifications and signals plugins are now part of RHDH image and no longer need to be configured by the user.
+
+Hence, these plugin fields are now removed from the CRD schema.
+
 - rhdhPlugins.notifications.package		
 - rhdhPlugins.notifications.integrity		
 - rhdhPlugins.notificationsBackend.package
@@ -24,6 +34,7 @@ The v1alpha2 version of [Orchestrator CRD](https://github.com/rhdhorchestrator/o
 - rhdhPlugins.notificationsEmail.integrity
 
 ## Renamed Fields
+For consistency in the subscription resource/configuration in the CRD, these fields are renamed.
 - sonataFlowOperator.subscription.source
 - serverlessOperator.subscription.source
   
