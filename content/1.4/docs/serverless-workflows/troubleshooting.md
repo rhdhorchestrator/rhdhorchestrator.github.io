@@ -93,7 +93,7 @@ a CA which is not available to the workflow. The error in the workflow pod log u
 ### Problem: Workflow installed in a different namespace than Sonataflow services fails to start
 
 **Solution:**
-When deploying a workflow in a namespace other than the one where Sonataflow services are running (e.g., `sonataflow-infra`), there are essential steps to follow to enable persistence and connectivity for the workflow. See the following [steps](https://github.com/rhdhorchestrator/orchestrator-helm-operator/blob/main/docs/main/README.md#additional-workflow-namespaces).
+When deploying a workflow in a namespace other than the one where Sonataflow services are running (e.g., `sonataflow-infra`), there are essential steps to follow to enable persistence and connectivity for the workflow. See the following [steps](https://github.com/rhdhorchestrator/orchestrator-helm-operator/blob/main/docs/release-1.4/README.md#additional-workflow-namespaces).
 
 ### Problem: sonataflow-platform-data-index-service pods can't connect to the database on startup
 

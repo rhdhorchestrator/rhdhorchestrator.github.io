@@ -33,7 +33,7 @@ resources:
 The resources for these pods are controlled by a CR of type SonataFlowPlatform. There is one such CR in the sonataflow-infra namespace.
 
 ### RHDH operator requirements
-The requirements for RHDH operator and its components are described [here](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.3/html/getting_started_with_red_hat_developer_hub/ref-rhdh-sizing_rhdh-getting-started#ref-rhdh-sizing_rhdh-getting-started)
+The requirements for RHDH operator and its components are described [here](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.4/html/about_red_hat_developer_hub/rhdh-sizing_about-rhdh)
 
 ## Workflows
 Each workflow has its own logic and therefore different resource requirements that are influenced by its specific logic.  
