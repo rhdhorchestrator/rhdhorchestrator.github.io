@@ -7,7 +7,7 @@ cascade:
 {{< blocks/cover title="Orchestrating Systems | Migrating Code Infrastructure | Keeping Developers in Sync"  color="primary" image_anchor="top" height="min" >}}
 
 <div class="mx-auto">
-	<a class="btn btn-lg btn-secondary me-3 mb-4" href="https://github.com/rhdhorchestrator/orchestrator-helm-operator/tree/main/docs/release-1.3">
+	<a class="btn btn-lg btn-secondary me-3 mb-4" href="https://github.com/rhdhorchestrator/orchestrator-helm-operator/tree/main/docs/release-1.4">
 		Setup Orchestrator <i class="fa-brands fa-github ms-2"></i>
 	</a>
 </div>

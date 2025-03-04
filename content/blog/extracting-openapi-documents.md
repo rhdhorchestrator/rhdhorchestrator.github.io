@@ -1520,7 +1520,7 @@ This procedure can be quite tedious when done manually, so some efforts were mad
 
 ### Python script to extract documents
 
-The [following script](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/hack/filter-openapi-specs.py) can be used to extract reuced openAPI documents from larger ones.
+The [following script](https://github.com/rhdhorchestrator/serverless-workflows/blob/v1.4.x/hack/filter-openapi-specs.py) can be used to extract reduced openAPI documents from larger ones.
 The script takes an input file, and output file, and a list of tuples (path objects, http method).
 ```
 python extract.py openapi_spec.json filtered_openapi_spec.json \
@@ -1537,6 +1537,35 @@ For each path, it extracts all dependencies (refs) that come with it in a recurs
 
 Some upcoming efforts will look into integrating this logic natively in the kn-workflow CLI.
 
+### Use kn-workflow version greater than 1.35
+`kn-workflow` introduces a new feature to minify the OpenAPI spec file to the used paths and components:
+```
+kn-workflow specs minify --help
+
+	Minification of OpenAPI specs:
+	Minification allows us to reduce the size of an OpenAPI spec file, which is essential given the maximum YAML
+	size supported by Kubernetes is limited to 3,145,728 bytes.
+
+	Note: right now only OpenAPI specs are supported for minification, see examples below.
+	
+
+Usage:
+  kn workflow specs minify [command]
+
+Examples:
+
+	#Minify the workflow project's OpenAPI spec file located in the current project.
+	kn workflow specs minify openapi
+		
+
+Available Commands:
+  openapi     Minify the openAPI spec files to trim operations only used by the workflows
+
+Flags:
+  -h, --help   help for minify
+
+Use "kn workflow specs minify [command] --help" for more information about a command.
+```
 
 ## Best Practices and Warnings:
 **Document size:** Even though the Quarkus engine has a YAML input file size limit of 3MB, the `kn-workflow` CLI generates k8s resources (configmaps) for spec/schema files.
