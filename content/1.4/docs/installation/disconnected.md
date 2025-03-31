@@ -13,6 +13,7 @@ The following images need to be added to the image registry:
 registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:8de6cdad90f1afd72dbc6637a6a14bdeedc7b909654a3913c4f44e518d6b22ef
 registry.redhat.io/rhel9/postgresql-15@sha256:b5f1af9950aee7306f5063229aad0da08f885c4cf4bf39ba74b11b4e58e8d40b
 registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5eb109362246ccddd564febe6387bc6015d47555df00c36aa88c2247099851b7
+registry.redhat.io/rhdh/rhdh-operator-bundle:sha256:c3fcfee584652ee840c655ac4dd141743bafd5043865f20dd78116bc33e9e850
 ```
 
 The list of images was obtained by:
@@ -79,18 +80,19 @@ podman run --rm --entrypoint bash registry.redhat.io/openshift-serverless-1/serv
 
 ### OpenShift Serverless Logic Operator:
 ```
-gcr.io/kaniko-project/warmer:v1.9.0
-gcr.io/kaniko-project/executor:v1.9.0
+registry.redhat.io/openshift-serverless-1/logic-operator-bundle:1.35.0-5
 registry.redhat.io/openshift-serverless-1/logic-jobs-service-postgresql-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-jobs-service-ephemeral-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-data-index-postgresql-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-data-index-ephemeral-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-swf-builder-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-swf-devmode-rhel8:1.35.0
-
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
 registry.redhat.io/openshift-serverless-1/logic-rhel8-operator@sha256:203043ca27819f7d039fd361d0816d5a16d6b860ff19d737b07968ddfba3d2cd
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
+
+gcr.io/kaniko-project/warmer:v1.9.0
+gcr.io/kaniko-project/executor:v1.9.0
 ```
 
 ```bash
@@ -105,6 +107,7 @@ yq -r '.. | select(has("image")) | .image' ./local-manifests-osl/logic-operator-
 ```
 registry.redhat.io/openshift4/ose-kube-rbac-proxy-rhel9@sha256:29201e85bd41642b72c7c0ce915e40aad90823d0efc3e7bbab9c351c92c74341
 registry.redhat.io/rhdh-orchestrator-dev-preview-beta/controller-rhel9-operator@sha256:22a6e6a593a3e92ac3951405832708f04237d32937209e378a25d54e6b69e512
+registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle@sha256:e2d430161048239611b874a10376e7889d3cdd6f0368419e4bfba2d2c18dafd5
 ```
 
 The list of images was obtained by:
