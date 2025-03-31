@@ -3,7 +3,10 @@ title: "Disconnected Enironment"
 date: 2025-02-24
 Weight: 10
 ---
-To install the Orchestrator and its required components in a disconnected environment, the following images need to be added to the image registry:
+To install the Orchestrator and its required components in a disconnected environment, there is a need to mirror images and NPM packages.
+
+## Images for a disconnected environment
+The following images need to be added to the image registry:
 
 ### RHDH Operator:
 ```
@@ -84,6 +87,7 @@ registry.redhat.io/openshift-serverless-1/logic-data-index-postgresql-rhel8:1.35
 registry.redhat.io/openshift-serverless-1/logic-data-index-ephemeral-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-swf-builder-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-swf-devmode-rhel8:1.35.0
+
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
 registry.redhat.io/openshift-serverless-1/logic-rhel8-operator@sha256:203043ca27819f7d039fd361d0816d5a16d6b860ff19d737b07968ddfba3d2cd
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
@@ -109,4 +113,15 @@ podman create --name temp-container registry.redhat.io/rhdh-orchestrator-dev-pre
 podman cp temp-container:/manifests ./local-manifests-orchestrator
 podman rm temp-container
 yq '.spec.install.spec.deployments[].spec.template.spec.containers[].image' local-manifests-orchestrator/orchestrator-operator.clusterserviceversion.yaml
+```
+
+## NPM packages for a disconnected environment
+The packages required for the Orchestrator can be downloaded as tgz files from:
+* https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator/-/backstage-plugin-orchestrator-1.4.0.tgz
+* https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator-backend-dynamic/-/backstage-plugin-orchestrator-backend-dynamic-1.4.0.tgz
+
+or using NPM packages from https://npm.registry.redhat.com e.g. by:
+```bash
+  npm pack "@redhat/backstage-plugin-orchestrator@1.4.0" --registry=https://npm.registry.redhat.com
+  npm pack "@redhat/backstage-plugin-orchestrator-backend-dynamic@1.4.0" --registry=https://npm.registry.redhat.com
 ```
