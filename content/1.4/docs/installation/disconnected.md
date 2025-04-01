@@ -80,7 +80,7 @@ podman run --rm --entrypoint bash registry.redhat.io/openshift-serverless-1/serv
 
 ### OpenShift Serverless Logic Operator:
 ```
-registry.redhat.io/openshift-serverless-1/logic-operator-bundle:1.35.0-5
+registry.redhat.io/openshift-serverless-1/logic-operator-bundle:sha256:a1d1995b2b178a1242d41f1e8df4382d14317623ac05b91bf6be971f0ac5a227
 registry.redhat.io/openshift-serverless-1/logic-jobs-service-postgresql-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-jobs-service-ephemeral-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-data-index-postgresql-rhel8:1.35.0
