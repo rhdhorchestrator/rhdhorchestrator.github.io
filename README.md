@@ -3,7 +3,7 @@ rhdhorchestrator.github.io
 This site is built by hugo static site generater and published using a github action to https://rhdhorchestrator.io
 
 # Devleopment
-- Requiremens
+- Requirements
     - go
     - git
     - Download `hugo` *extended* version from [hugo releases page](https://github.com/gohugoio/hugo/releases/)       or run
