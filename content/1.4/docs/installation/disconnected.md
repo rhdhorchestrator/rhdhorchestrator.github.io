@@ -4,21 +4,22 @@ date: 2025-02-24
 Weight: 10
 ---
 To install the Orchestrator and its required components in a disconnected environment, there is a need to mirror images and NPM packages.
+Please ensure the images are added using either `ImageDigestMirrorSet` or `ImageTagMirrorSet`, depending on the format of their values.
 
 ## Images for a disconnected environment
 The following images need to be added to the image registry:
 
 ### RHDH Operator:
 ```
-registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:8de6cdad90f1afd72dbc6637a6a14bdeedc7b909654a3913c4f44e518d6b22ef
-registry.redhat.io/rhel9/postgresql-15@sha256:b5f1af9950aee7306f5063229aad0da08f885c4cf4bf39ba74b11b4e58e8d40b
-registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5eb109362246ccddd564febe6387bc6015d47555df00c36aa88c2247099851b7
-registry.redhat.io/rhdh/rhdh-operator-bundle:sha256:c3fcfee584652ee840c655ac4dd141743bafd5043865f20dd78116bc33e9e850
+registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:ae5b52c1b35e82f3c564402e367a2a2028e16806867bba0868643089ba7ed223
+registry.redhat.io/rhel9/postgresql-15@sha256:450a3c82d66f0642eee81fc3b19f8cf01fbc18b8e9dbbd2268ca1f471898db2f
+registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:deff7232eefb563a206a3bbf3d5f539c68140f55f041d9c0c3b645fde72dd34e
+registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:093c6a66d4faa1d980e4319a048db8b2869eba8f13f40f02615d6696257e6719
 ```
 
 The list of images was obtained by:
 ```bash
-podman create --name temp-container registry.redhat.io/rhdh/rhdh-operator-bundle:1.4.2
+podman create --name temp-container registry.redhat.io/rhdh/rhdh-operator-bundle:1.4.3
 podman cp temp-container:/manifests ./local-manifests-rhdh
 podman rm temp-container
 yq e '.spec.install.spec.deployments[].spec.template.spec.containers[].image,
@@ -80,7 +81,7 @@ podman run --rm --entrypoint bash registry.redhat.io/openshift-serverless-1/serv
 
 ### OpenShift Serverless Logic Operator:
 ```
-registry.redhat.io/openshift-serverless-1/logic-operator-bundle:sha256:a1d1995b2b178a1242d41f1e8df4382d14317623ac05b91bf6be971f0ac5a227
+registry.redhat.io/openshift-serverless-1/logic-operator-bundle@sha256:a1d1995b2b178a1242d41f1e8df4382d14317623ac05b91bf6be971f0ac5a227
 registry.redhat.io/openshift-serverless-1/logic-jobs-service-postgresql-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-jobs-service-ephemeral-rhel8:1.35.0
 registry.redhat.io/openshift-serverless-1/logic-data-index-postgresql-rhel8:1.35.0
