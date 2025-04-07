@@ -106,5 +106,13 @@ An PR is opened to add its support: https://github.com/quarkiverse/quarkus-opena
 
 With Basic auth, the `$WORKFLOW.identity` is not available.
 
+Instead you could access the header directly: `$WORKFLOW.headers.X-Authorization-{provider}` and decode it:
+```
+functions:
+- name: getIdentity
+  type: expression
+  operation: '.identity=($WORKFLOW.headers["x-authorization-basic"] | @base64d | split(":")[0])' # mind the lower case!!
+```
+
 You can see a full example here: https://github.com/rhdhorchestrator/workflow-token-propagation-example.
 
