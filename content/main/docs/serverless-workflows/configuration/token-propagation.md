@@ -14,7 +14,8 @@ To do so, a set of properties must be set in the workflow `application.propertie
 # Build
 
 When building the workflow's image, you will need to make sure the following extensions is present in the `QUARKUS_EXTENSION`:
-* io.quarkus:quarkus-oidc-client-filter
+* io.quarkus:quarkus-oidc-client-filter # needed for propagation
+* io.quarkus:quarkus-oidc # neded for token validity check thus accessing $WORKFLOW.identity
 
 # Configuration
 ## Oauth2
@@ -33,13 +34,25 @@ components:
 ```
 2. In the `application.properties` of your workflow, for each security scheme, adds the following:
 ```
-quarkus.oidc-client.BearerToken.auth-server-url=https://<keycloak>/realms/<yourRealm>
-quarkus.oidc-client.BearerToken.token-path=https://<keycloak>/realms/<yourRealm>/protocol/openid-connect/token
+auth-server-url=https://<keycloak>/realms/<yourRealm>
+client-id=<client ID>
+client-secret=<client secret>
+
+# Properties to check for identity, needed to use $WORKFLOW.identity within the workflow
+quarkus.oidc.auth-server-url=${auth-server-url}
+quarkus.oidc.client-id=${client-id}
+quarkus.oidc.credentials.secret=${client-secret}
+quarkus.oidc.token.header=X-Authorization-<provider>
+quarkus.oidc.token.issuer=any # needed in case the auth server url is not the same as the one configured; e.g: localhost VS the k8S service
+
+# Properties for propagation
+quarkus.oidc-client.BearerToken.auth-server-url=${auth-server-url}
+quarkus.oidc-client.BearerToken.token-path=${auth-server-url}/protocol/openid-connect/token
 quarkus.oidc-client.BearerToken.discovery-enabled=false
-quarkus.oidc-client.BearerToken.client-id=<client ID>
+quarkus.oidc-client.BearerToken.client-id=${client-id}
 quarkus.oidc-client.BearerToken.grant.type=client
 quarkus.oidc-client.BearerToken.credentials.client-secret.method=basic
-quarkus.oidc-client.BearerToken.credentials.client-secret.value=<client secret>
+quarkus.oidc-client.BearerToken.credentials.client-secret.value=${client-secret}
 
 quarkus.openapi-generator.<spec_file_yaml_or_json>.auth.<security_scheme>.token-propagation=true
 quarkus.openapi-generator.<spec_file_yaml_or_json>.auth.<security_scheme>.header-name=X-Authorization-<provider>
@@ -51,6 +64,8 @@ With:
 * `keycloak`: the URL of the running Keycloak instance.
 * `yourRealm`: the name of the realm to use.
 * `client ID`: the ID of the Keycloak client to use to authenticate against the Keycloak instance.
+
+Setting the `quarkus.oidc.*` properties will enforce the token validity check against the OIDC provider. Once successful, you will be able to use `$WORKFLOW.identity` in the workflow definition in order to get the identity of the user.
 
 ## Bearer token
 1. In the openapi spec file(s) for which you want to propagate the incoming token to, write down the security scheme configured for the endpoints of interests for you. All endpoints may use the same security scheme if configured globally.
@@ -64,6 +79,17 @@ components:
 ```
 2. In the `application.properties` of your workflow, for each security scheme, adds the following:
 ```
+auth-server-url=https://<keycloak>/realms/<yourRealm>
+client-id=<client ID>
+client-secret=<client secret>
+
+# Properties to check for identity, needed to use $WORKFLOW.identity within the workflow
+quarkus.oidc.auth-server-url=${auth-server-url}
+quarkus.oidc.client-id=${client-id}
+quarkus.oidc.credentials.secret=${client-secret}
+quarkus.oidc.token.header=X-Authorization-<provider>
+quarkus.oidc.token.issuer=any # needed in case the auth server url is not the same as the one configured; e.g: localhost VS the k8S service
+
 quarkus.openapi-generator.<spec_file_yaml_or_json>.auth.<security_scheme>.token-propagation=true
 quarkus.openapi-generator.<spec_file_yaml_or_json>.auth.<security_scheme>.header-name=X-Authorization-<provider>
 ```
@@ -71,9 +97,14 @@ With:
 * `spec_file_yaml_or_json`: the name of the spec file configured with `_` as separator. E.g: if the file name is `dumb-server.yaml` the normalized property name will be `dumb_server_yaml`. This should be the same for every security scheme defined in the file.
 * `security_scheme`: the name of the security scheme for which propagate the token located in the header defined by the `header-name` property. In our example it would be `SimpleBearerToken`.
 * `provider`: the name of the expected provider from which the token comes from. As explained above, for each provider in RHDH, the Orchestrator plugin is adding a header with the format `X-Authorization-{provider}: {token}`.
+
+Setting the `quarkus.oidc.*` properties will enforce the token validity check against the OIDC provider. Once successful, you will be able to use `$WORKFLOW.identity` in the workflow definition in order to get the identity of the user.
+
 ## Basic auth
 Basic auth token propagation is not currently supported.
 An PR is opened to add its support: https://github.com/quarkiverse/quarkus-openapi-generator/pull/1078
 
+With Basic auth, the `$WORKFLOW.identity` is not available.
 
-You can see a full example with different security scheme types here: https://github.com/rhdhorchestrator/workflow-token-propagation-example.
+You can see a full example here: https://github.com/rhdhorchestrator/workflow-token-propagation-example.
+
