@@ -9,6 +9,9 @@ Please ensure the images are added using either `ImageDigestMirrorSet` or `Image
 ## Images for a disconnected environment
 The following images need to be added to the image registry:
 
+> **Recommendation:**  
+> When fetching the list of required images, ensure that you are using the latest version of the bundle operator when appropriate. This helps avoid missing or outdated image references.
+
 ### RHDH Operator:
 ```
 registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:ae5b52c1b35e82f3c564402e367a2a2028e16806867bba0868643089ba7ed223
@@ -119,6 +122,12 @@ podman cp temp-container:/manifests ./local-manifests-orchestrator
 podman rm temp-container
 yq '.spec.install.spec.deployments[].spec.template.spec.containers[].image' local-manifests-orchestrator/orchestrator-operator.clusterserviceversion.yaml
 ```
+
+> **Note:**  
+> If you encounter issues pulling images due to an invalid GPG signature, consider updating the `/etc/containers/policy.json` file to reference the appropriate beta GPG key.  
+> For example, you can use:  
+> `/etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-beta`  
+> This may be required when working with pre-release or beta images signed with a different key than the default.
 
 ## NPM packages for a disconnected environment
 The packages required for the Orchestrator can be downloaded as tgz files from:
