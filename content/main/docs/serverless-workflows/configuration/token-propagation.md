@@ -2,14 +2,14 @@
 title: "Configure workflow for token propagation"
 date: 2025-04-04
 ---
-By default, the RHDH Orchestrator plugin adds *headers* for each tokenin the 'authTokens' field of the POST request that is used to trigger a workflow execution. Those *headers* will be in the following format: `X-Authorization-{provider}: {token}`.
+By default, the RHDH Orchestrator plugin adds *headers* for each token in the 'authTokens' field of the POST request that is used to trigger a workflow execution. Those *headers* will be in the following format: `X-Authorization-{provider}: {token}`.
 This allows the user identity to be propagated to the third parties and externals services called by the workflow.
 To do so, a set of properties must be set in the workflow `application.properties` file.
 
 # Prerequisites
 * Having a Keycloak instance running with a client
 * Having RHDH with the latest version of the Orchestrator plugins
-* Having a workflow using openapi spec file to send REST requests to a service. Using custom REST function within the workflow will not propagate the token; it is only possible to propagate token when using openapi specification file.
+* Having a workflow using openapi spec file to send REST requests to a service. Using custom REST function within the workflow will not propagate the token; it is only possible to propagate tokens when using openapi specification file.
 
 # Build
 
@@ -34,7 +34,7 @@ components:
          scopes: {}
      description: Bearer Token authentication
 ```
-2. In the `application.properties` of your workflow, for each security scheme, adds the following:
+2. In the `application.properties` of your workflow, for each security scheme, add the following:
 ```
 auth-server-url=https://<keycloak>/realms/<yourRealm>
 client-id=<client ID>
@@ -81,7 +81,7 @@ components:
      type: http
      scheme: bearer
 ```
-2. In the `application.properties` of your workflow, for each security scheme, adds the following:
+2. In the `application.properties` of your workflow, for each security scheme, add the following:
 ```
 auth-server-url=https://<keycloak>/realms/<yourRealm>
 client-id=<client ID>
