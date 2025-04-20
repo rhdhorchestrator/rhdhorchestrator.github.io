@@ -23,7 +23,7 @@ This document provides solutions to common problems encountered with serverless 
 ---
 
 ## HTTP Errors
-Many workflow operations are REST requests to REST endpoints. If an HTTP error occurs then the workflow will fail and the HTTP code and message will be displayed. Here is an [example](https://github.com/rhdhorchestrator/rhdhorchestrator.github.io/blob/main/content/main/docs/serverless-workflows/409-error.png?raw=true) of the error in the UI.
+Many workflow operations are REST requests to REST endpoints. If an HTTP error occurs then the workflow will fail and the HTTP code and message will be displayed. Here is an [example](https://github.com/rhdhorchestrator/rhdhorchestrator.github.io/blob/main/content/1.5/docs/serverless-workflows/409-error.png?raw=true) of the error in the UI.
 Please use [HTTP codes documentation](https://developer.mozilla.org/docs/Web/HTTP/Status) for understanding the meaning of such errors.
 Here are some examples:
  - `409`. Usually indicates that we are trying to update or create a resource that already exists. E.g. K8S/OCP resources.
@@ -93,7 +93,7 @@ a CA which is not available to the workflow. The error in the workflow pod log u
 ### Problem: Workflow installed in a different namespace than Sonataflow services fails to start
 
 **Solution:**
-When deploying a workflow in a namespace other than the one where Sonataflow services are running (e.g., `sonataflow-infra`), there are essential steps to follow to enable persistence and connectivity for the workflow. See the following [steps](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/main/docs/main/README.md#additional-workflow-namespaces).
+When deploying a workflow in a namespace other than the one where Sonataflow services are running (e.g., `sonataflow-infra`), there are essential steps to follow to enable persistence and connectivity for the workflow. See the following [steps](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/main/docs/release-1.5/README.md#additional-workflow-namespaces).
 
 ### Problem: sonataflow-platform-data-index-service pods can't connect to the database on startup
 

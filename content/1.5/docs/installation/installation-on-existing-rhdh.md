@@ -18,4 +18,4 @@ When [RHDH](https://developers.redhat.com/rhdh) is already installed and in use,
 
 In this approach, since the RHDH instance is not managed by the Orchestrator operator, its configuration is handled through the Backstage CR along with the associated resources, such as ConfigMaps and Secrets.
 
-The installation steps are detailed [here](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/main/docs/main/existing-rhdh.md).
+The installation steps are detailed [here](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/main/docs/release-1.5/existing-rhdh.md).
