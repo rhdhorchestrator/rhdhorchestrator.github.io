@@ -13,7 +13,36 @@ The following images need to be added to the image registry:
 > When fetching the list of required images, ensure that you are using the latest version of the bundle operator when appropriate. This helps avoid missing or outdated image references.
 
 ### RHDH Operator:
-TBD
+```
+registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:9fd11a4551da42349809bbf34eb54c3b0ca8a3884d556593656af79e72786c01
+registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:c870eb3d17807a9d04011df5244ea39db66af76aefd0af68244c95ed8322d8b5
+registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:df9204cfad16b43ff00385609ef4e99a292c033cb56be6ac76108cd0e0cfcb4b
+registry.redhat.io/rhel9/postgresql-15@sha256:450a3c82d66f0642eee81fc3b19f8cf01fbc18b8e9dbbd2268ca1f471898db2f
+```
+
+The list of images was obtained by:
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+IMG="registry.redhat.io/rhdh/rhdh-operator-bundle:1.5.1"
+DIR="local-manifests-rhdh"
+CSV="$DIR/rhdh-operator.clusterserviceversion.yaml"
+
+podman pull "$IMG" --quiet >/dev/null 2>&1
+BUNDLE_DIGEST=$(podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}')
+
+podman create --name temp "$IMG" > /dev/null
+podman cp temp:/manifests "$DIR"
+podman rm temp > /dev/null
+
+yq e '
+  .spec.install.spec.deployments[].spec.template.spec.containers[].image,
+  .spec.install.spec.deployments[].spec.template.spec.containers[].env[]
+  | select(.name | test("^RELATED_IMAGE_")).value
+' "$CSV" | cat - <(echo "$BUNDLE_DIGEST") | sort -u
+EOF
+```
 
 ### OpenShift Serverless Operator:
 ```
@@ -94,7 +123,30 @@ yq -r '.. | select(has("image")) | .image' ./local-manifests-osl/logic-operator-
 ```
 
 ### Orchestrator Operator:
-TBD
+```
+registry.redhat.io/rhdh-orchestrator-dev-preview-beta/controller-rhel9-operator@sha256:ea42a1a593af9433ac74e58269c7e0705a08dbfa8bd78fba69429283a307131a
+registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle@sha256:0a9e5d2626b4306c57659dbb90e160f1c01d96054dcac37f0975500d2c22d9c7
+```
+
+The list of images was obtained by:
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+IMG="registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle:1.5-1744669755"
+DIR="local-manifests-orchestrator"
+CSV="$DIR/orchestrator-operator.clusterserviceversion.yaml"
+
+podman pull "$IMG" --quiet >/dev/null 2>&1
+BUNDLE_DIGEST=$(podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}')
+
+podman create --name temp "$IMG" > /dev/null
+podman cp temp:/manifests "$DIR"
+podman rm temp > /dev/null
+
+yq e '.spec.install.spec.deployments[].spec.template.spec.containers[].image' "$CSV" | cat - <(echo "$BUNDLE_DIGEST") | sort -u
+EOF
+```
 
 > **Note:**  
 > If you encounter issues pulling images due to an invalid GPG signature, consider updating the `/etc/containers/policy.json` file to reference the appropriate beta GPG key.  
@@ -106,9 +158,10 @@ TBD
 The packages required for the Orchestrator can be downloaded as tgz files from:
 * https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator/-/backstage-plugin-orchestrator-1.5.1.tgz
 * https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator-backend-dynamic/-/backstage-plugin-orchestrator-backend-dynamic-1.5.1.tgz
-
+* https://npm.registry.redhat.com/@redhat/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic/-/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic-1.5.1.tgz
 or using NPM packages from https://npm.registry.redhat.com e.g. by:
 ```bash
   npm pack "@redhat/backstage-plugin-orchestrator@1.5.1" --registry=https://npm.registry.redhat.com
   npm pack "@redhat/backstage-plugin-orchestrator-backend-dynamic@1.5.1" --registry=https://npm.registry.redhat.com
+  npm pack "@redhat/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic@1.5.1" --registry=https://npm.registry.redhat.com
 ```
