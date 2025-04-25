@@ -1,5 +1,5 @@
 ---
-title: "Disconnected Enironment"
+title: "Disconnected Environment"
 date: 2025-04-20
 Weight: 10
 ---
