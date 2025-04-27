@@ -13,7 +13,7 @@ restructured.
 To see more information about the CRD fields, check out the
 full [Parameter list](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/release-1.5/docs/crd/README.md).
 
-The following Orchestrator CR is an sample of the api v1alpha3 version.
+The following Orchestrator CR is a sample of the api v1alpha3 version.
 
 ```yaml
 apiVersion: rhdh.redhat.com/v1alpha3
