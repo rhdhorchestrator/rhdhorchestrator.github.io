@@ -320,6 +320,7 @@ kubectl edit secrets -n sonataflow-infra basic-secrets
 ```
 
 Use base64-encoded dummy values if needed for this simple example.
+A restart of the workflow pod is required for the changes to take effect.
 
 #### Verify Deployment Status
 
