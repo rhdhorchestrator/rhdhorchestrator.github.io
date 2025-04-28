@@ -51,10 +51,6 @@ params:
       url: "/1.5/docs"
     - version: 1.4
       url: "/1.4/docs"
-    - version: 1.3
-      url: "/1.3/docs"
-    - version: 1.2
-      url: "/1.2/docs"
     - version: main
       url: "/main/docs"
 
