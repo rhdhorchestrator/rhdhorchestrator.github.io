@@ -2,6 +2,7 @@ baseURL: /
 languageCode: en-us
 title: RHDH Orchestrator
 enableRobotsTXT: true
+timeout: 90s
 theme:
   - github.com/google/docsy
 module:
