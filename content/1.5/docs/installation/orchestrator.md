@@ -12,4 +12,4 @@ When installing a Red Hat Developer Hub (RHDH) instance using the Orchestrator o
 
 To utilize *Backstage* capabilities, the Orchestrator imports software templates designed to ease the development of new workflows and offers an opinionated method for managing their lifecycle by including CI/CD resources as part of the template.
 
-{{< remoteMD "https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/main/docs/release-1.5/README.md?raw=true" >}}
+{{< remoteMD "https://raw.githubusercontent.com/rhdhorchestrator/orchestrator-go-operator/refs/heads/main/docs/release-1.5/README.md" >}}

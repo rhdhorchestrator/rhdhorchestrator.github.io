@@ -3,4 +3,4 @@ title: Simple Escalation
 date: "2024-02-28"
 ---
 
-{{< remoteMD "https://github.com/rhdhorchestrator/serverless-workflows/blob/v1.5.x/workflows/escalation/README.md?raw=true" >}}
+{{< remoteMD "https://raw.githubusercontent.com/rhdhorchestrator/serverless-workflows/refs/heads/v1.5.x/workflows/escalation/README.md" >}}

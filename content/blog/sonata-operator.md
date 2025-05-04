@@ -1,7 +1,7 @@
 ---
 date: 2024-02-19
 title: What is Sonataflow Operator? 
-# Content is copied from https://github.com/apache/incubator-kie-kogito-serverless-operator/blob/main/README.md?raw=true
+# Content is copied from https://github.com/apache/incubator-kie-kogito-serverless-operator/blob/main/README.md
 # and edited to solve broken links
 ---
 # SonataFlow Operator
