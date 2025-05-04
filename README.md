@@ -1,6 +1,4 @@
-rhdhorchestrator.github.io
-
-This site is built by hugo static site generater and published using a github action to https://rhdhorchestrator.io
+This [site](rhdhorchestrator.github.io) is built by hugo static site generater and published using a github action to [https://rhdhorchestrator.io](https://rhdhorchestrator.io)
 
 # Devleopment
 - Requirements
@@ -35,9 +33,15 @@ Read more the on hugo documentation https://gohugo.io/documentation/
 
 # How to add a document?
 Documents can include markdown content from all the related *`rhdhorchestrator`* repositories.
-To create a document entry from a markdown file use this:
+To create a document entry from a markdown file use this, use a direct link to its raw format.
+For example:
 
 ```bash
 ./generate-doc-for-repo.sh \
-    https://github.com/rhdhorchestrator/$REPO/blob/$BRANCH//README.md > content/docs/newdoc.md
+  https://raw.githubusercontent.com/rhdhorchestrator/rhdhorchestrator.github.io/refs/heads/main/README.md > content/docs/newdoc.md
+```
+
+If you wish to use the `remoteMD` function to render in-site pages from other sources, also provide a link to their raw markdown format, e.g.:
+```html
+{{< remoteMD "https://raw.githubusercontent.com/rhdhorchestrator/rhdhorchestrator.github.io/refs/heads/main/README.md" >}}
 ```
