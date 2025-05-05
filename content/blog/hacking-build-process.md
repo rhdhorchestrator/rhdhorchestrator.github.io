@@ -9,7 +9,7 @@ In this guide, we'll dive under the hood of the serverless workflow build proces
 
 ## The Problem
 
-We're working with a [repository](https://github.com/masayag/poc-kafka-logic-operator) that contains an issue with the standard workflow build script described in our [previous post](./building-and-deploying-workflows.md). When running the script, you'll encounter an error - the manifests can't be generated due to an incompatible workflow spec, specifically with the `eventRef` element.
+We're working with a [repository](https://github.com/masayag/poc-kafka-logic-operator) that contains an issue with the standard workflow build script described in our [previous post](./building-and-deploying-workflows.md). When running the script, you'll encounter [an error](https://github.com/apache/incubator-kie-tools/issues/3084) - the manifests can't be generated due to an incompatible workflow spec, specifically with the `eventRef` element.
 
 Interestingly, if you run the workflow using `mvn clean quarkus:dev`, it starts successfully. This reveals a discrepancy between:
 
