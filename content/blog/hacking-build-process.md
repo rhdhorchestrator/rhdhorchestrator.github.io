@@ -255,6 +255,90 @@ lock-flow-5cbd5dbdb-2g7wz   1/1     Running   0          13m
 
 Now we can test the workflow by emitting cloud events to trigger it. Note that in this example, we're not using the Orchestrator to invoke workflows, since it can only invoke workflows via HTTP endpoints. However, we can monitor the workflow's progress from the workflow runs tab.
 
----
+### Setting Up the Kafka Producer with TLS
 
-By following this guide, you've learned how to work around build process issues and successfully deploy a serverless workflow with all the necessary production configurations.
+To invoke the workflow, we'll use Kafka's producer script. Since we're using TLS, we need to have the `truststore.jks` file available.
+
+> In this example, we're using Kafka installed on an OpenShift cluster with the Strimzi operator.
+
+First, copy or mount the `truststore.jks` file to the Kafka cluster broker pod. Then create a properties file at `/tmp/client-ssl.properties`:
+
+```bash
+security.protocol=SSL
+ssl.truststore.location=/tmp/truststore.jks
+ssl.truststore.password=password
+ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1
+ssl.protocol=TLS
+```
+
+### Triggering the Workflow
+
+Now invoke the Kafka producer:
+
+```bash
+./bin/kafka-console-producer.sh \
+  --broker-list kafka-cluster-3-kafka-bootstrap:9093 \
+  --topic lock-event \
+  --producer.config /tmp/client-ssl.properties
+```
+
+This command opens an interactive session where you can paste Kafka messages.
+
+#### Step 1: Send the Lock Event
+
+To start a workflow, first paste the content of the [lock-event](https://github.com/masayag/poc-kafka-logic-operator/blob/main/kafka-messages/lock-event.json):
+
+```json
+{
+  "specversion": "1.0",
+  "id": "db16ff44-5b0b-4abc-88f3-5a71378be171",
+  "source": "http://dev.local",
+  "type": "lock-event",
+  "datacontenttype": "application/json",
+  "time": "2025-03-07T15:04:32.327635-05:00",
+  "lockid": "03471a81-310a-47f5-8db3-cceebc63961a",
+  "data": {
+    "name": "The Kraken",
+    "id": "03471a81-310a-47f5-8db3-cceebc63961a"
+  }
+}
+```
+
+Once sent, you can verify that the workflow is in an "Active" state in the Orchestrator plugin.
+
+#### Step 2: Send the Release Event
+
+Next, paste the content of the [release-event](https://github.com/masayag/poc-kafka-logic-operator/blob/main/kafka-messages/release-event.json) to continue the workflow to its completion:
+
+```json
+{
+  "specversion": "1.0",
+  "id": "0e375e93-9846-4ba4-a9f0-ef8663e5a307",
+  "source": "http://dev.local",
+  "type": "release-event",
+  "datacontenttype": "application/json",
+  "time": "2025-03-07T15:09:32.327635-05:00",
+  "lockid": "03471a81-310a-47f5-8db3-cceebc63961a",
+  "data": {
+    "name": "Release The Kraken",
+    "id": "03471a81-310a-47f5-8db3-cceebc63961a"
+  }
+}
+```
+
+After sending this event, you can observe the workflow complete its execution in the Orchestrator dashboard.
+
+## Conclusion
+
+By following this guide, you've learned how to:
+
+1. Work around build process issues in serverless workflows
+2. Generate and customize Kubernetes manifests for workflow deployment
+3. Enable critical production features like persistence and TLS security
+4. Test Kafka-based workflows using cloud events
+
+These techniques allow you to deploy complex workflows even when standard tools encounter compatibility issues, giving you more control over your serverless infrastructure.
+
+## Acknowledgments
+
+Special thanks to [Ricardo Zanini](https://github.com/ricardozanini) for creating the [original repository example](https://github.com/ricardozanini/poc-kafka-logic-operator) that was used throughout this tutorial. His work provides an excellent foundation for exploring serverless workflow implementation in development mode and with the preview profile.
