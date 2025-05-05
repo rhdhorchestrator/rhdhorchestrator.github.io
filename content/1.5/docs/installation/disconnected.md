@@ -108,6 +108,7 @@ registry.redhat.io/openshift-serverless-1/logic-swf-devmode-rhel8:1.35.0
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
 registry.redhat.io/openshift-serverless-1/logic-rhel8-operator@sha256:203043ca27819f7d039fd361d0816d5a16d6b860ff19d737b07968ddfba3d2cd
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
+registry.redhat.io/openshift-serverless-1/serverless-operator-bundle@sha256:93b945eb2361b07bc86d67a9a7d77a0301a0bad876c83a9a64af2cfb86c83bff
 registry.redhat.io/openshift4/ose-cli:latest
 
 gcr.io/kaniko-project/warmer:v1.9.0
