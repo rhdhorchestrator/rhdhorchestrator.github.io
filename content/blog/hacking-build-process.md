@@ -12,19 +12,21 @@ In this guide, we'll dive under the hood of the serverless workflow build proces
 We're working with a [repository](https://github.com/masayag/poc-kafka-logic-operator) that contains an issue with the standard workflow build script described in our [previous post](./building-and-deploying-workflows.md). When running the script, you'll encounter [an error](https://github.com/apache/incubator-kie-tools/issues/3084) - the manifests can't be generated due to an incompatible workflow spec, specifically with the `eventRef` element.
 
 Interestingly, if you run the workflow using `mvn clean quarkus:dev`, it starts successfully. This reveals a discrepancy between:
-
 - The sonataflow-runtimes library that runs the workflow
 - The spec definition used by the kn-workflow v1.35 tool to generate manifests
 
 Instead of using the standard script, we'll explore a workaround to deploy the [lock-flow workflow](https://github.com/masayag/poc-kafka-logic-operator/blob/main/callback-flow/src/main/resources/lock.sw.yaml) to an OCP cluster using the gitops profile.
 
+## Prerequisites
+- Have kn-workflow CLI installed with a fix from [this repository](https://github.com/rhdhorchestrator/orchestrator-demo/releases/tag/v1.36-kn-workflow) or from [official link](https://mirror.openshift.com/pub/cgw/serverless-logic/latest/) when v1.36 is available.
+- Have a kafka cluster running on an OCP cluster
+- Have RHDH and the orchestrator installed
+
 ## Generating Manifests with the kn-workflow CLI
 
 The [kn-workflow CLI](https://mirror.openshift.com/pub/cgw/serverless-logic/latest/) serves multiple purposes in development, testing, and deployment. For our needs, we'll use it solely to generate Kubernetes manifests.
 
-> **Note:** The current latest version (v1.35) has a bug that affects manifest generation. We'll use an enhanced version from [this repository](https://github.com/rhdhorchestrator/orchestrator-demo/releases/tag/v1.36-kn-workflow) that includes a fix.
-
-First, download the kn-workflow CLI and add it to your `$PATH`. Then generate the manifests:
+To generate the manifests run:
 
 ```bash
 TARGET_IMAGE=<image:tag> # e.g. quay.io/orchestrator/demo-poc-kafka-logic:latest
@@ -109,7 +111,7 @@ Edit `src/main/resources/manifests/02-sonataflow_lock-flow.yaml` and add this se
         databaseSchema: lock-flow
 ```
 
-Also, add the following property to the configmap to enable Flyway migrations:
+Also, add the following property to the configmap manifest `01-configmap_lock-flow-props.yaml` to enable Flyway migrations
 
 ```yaml
 kie.flyway.enabled = true
@@ -134,11 +136,11 @@ To enable TLS, we need to mount a secret with the truststore to the workflow dep
           secretName: kafka-truststore
 ```
 
-Let's also update the configmap with TLS configuration:
+Let's update the configmap again, with TLS configuration this time:
 
 ```yaml
     # TLS support
-    kafka.bootstrap.servers=<kafka-bootstrap-server>:9093
+    kafka.bootstrap.servers=<kafka-bootstrap-service>:<tls-port>
     mp.messaging.connector.smallrye-kafka.security.protocol=SSL
     # Specify the enabled TLS protocols (forcing TLSv1.2)
     mp.messaging.connector.smallrye-kafka.ssl.enabled.protocols=TLSv1.2
@@ -191,7 +193,7 @@ data:
     quarkus.kafka.devservices.enabled=false
 
     # TLS support
-    kafka.bootstrap.servers=kafka-cluster-3-kafka-bootstrap.orchestrator.svc:9093
+    kafka.bootstrap.servers=<kafka-bootstrap-service>:<tls-port>
     mp.messaging.connector.smallrye-kafka.security.protocol=SSL
     # Specify the enabled TLS protocols (forcing TLSv1.2)
     mp.messaging.connector.smallrye-kafka.ssl.enabled.protocols=TLSv1.2
@@ -234,8 +236,8 @@ Here's the complete SonataFlow CR with our additions:
 Now we can deploy the manifests to the cluster. The files are numbered for a reason - the configmap must be applied first, otherwise, the SonataFlow operator will generate an empty configmap for the workflow:
 
 ```bash
-oc create -f manifests/01-configmap_lock-flow-props.yaml -n sonataflow-infra
-oc create -f manifests/02-sonataflow_lock-flow.yaml -n sonataflow-infra
+oc apply -f manifests/01-configmap_lock-flow-props.yaml -n sonataflow-infra
+oc apply -f manifests/02-sonataflow_lock-flow.yaml -n sonataflow-infra
 ```
 
 Let's watch for the workflow pod status to verify it's running:
@@ -261,72 +263,55 @@ To invoke the workflow, we'll use Kafka's producer script. Since we're using TLS
 
 > In this example, we're using Kafka installed on an OpenShift cluster with the Strimzi operator.
 
-First, copy or mount the `truststore.jks` file to the Kafka cluster broker pod. Then create a properties file at `/tmp/client-ssl.properties`:
+First, copy or mount the `truststore.jks` file to the Kafka cluster broker pod.\
+Then create a properties file at `/tmp/client-ssl.properties`:
 
 ```bash
+cat <<EOF > /tmp/client-ssl.properties
 security.protocol=SSL
 ssl.truststore.location=/tmp/truststore.jks
 ssl.truststore.password=password
 ssl.enabled.protocols=TLSv1.2,TLSv1.1,TLSv1
 ssl.protocol=TLS
+EOF
 ```
 
 ### Triggering the Workflow
+The workflow is started by producing the lock event and finalized by producing the release event.
 
-Now invoke the Kafka producer:
+#### Step 1: Send the Lock Event
+Now invoke the Kafka producer to produce the lock event, make sure to set the bootstrap server properties:
 
 ```bash
-./bin/kafka-console-producer.sh \
-  --broker-list kafka-cluster-3-kafka-bootstrap:9093 \
+echo '{"specversion":"1.0","id":"db16ff44-5b0b-4abc-88f3-5a71378be171","source":"http://dev.local","type":"lock-event","datacontenttype":"application/json","time":"2025-03-07T15:04:32.327635-05:00","lockid":"03471a81-310a-47f5-8db3-cceebc63961a","data":{"name":"The Kraken","id":"03471a81-310a-47f5-8db3-cceebc63961a"}}' |
+  ./bin/kafka-console-producer.sh \
+  --bootstrap-server <kafka-bootstrap-service>:<tls-port> \
   --topic lock-event \
   --producer.config /tmp/client-ssl.properties
 ```
-
-This command opens an interactive session where you can paste Kafka messages.
-
-#### Step 1: Send the Lock Event
-
-To start a workflow, first paste the content of the [lock-event](https://github.com/masayag/poc-kafka-logic-operator/blob/main/kafka-messages/lock-event.json):
-
-```json
-{
-  "specversion": "1.0",
-  "id": "db16ff44-5b0b-4abc-88f3-5a71378be171",
-  "source": "http://dev.local",
-  "type": "lock-event",
-  "datacontenttype": "application/json",
-  "time": "2025-03-07T15:04:32.327635-05:00",
-  "lockid": "03471a81-310a-47f5-8db3-cceebc63961a",
-  "data": {
-    "name": "The Kraken",
-    "id": "03471a81-310a-47f5-8db3-cceebc63961a"
-  }
-}
-```
-
 Once sent, you can verify that the workflow is in an "Active" state in the Orchestrator plugin.
 
 #### Step 2: Send the Release Event
 
-Next, paste the content of the [release-event](https://github.com/masayag/poc-kafka-logic-operator/blob/main/kafka-messages/release-event.json) to continue the workflow to its completion:
+Next, invoke the Kafka producer to produce the release event, make sure to set the bootstrap server properties:
 
 ```json
-{
-  "specversion": "1.0",
-  "id": "0e375e93-9846-4ba4-a9f0-ef8663e5a307",
-  "source": "http://dev.local",
-  "type": "release-event",
-  "datacontenttype": "application/json",
-  "time": "2025-03-07T15:09:32.327635-05:00",
-  "lockid": "03471a81-310a-47f5-8db3-cceebc63961a",
-  "data": {
-    "name": "Release The Kraken",
-    "id": "03471a81-310a-47f5-8db3-cceebc63961a"
-  }
-}
+echo '{"specversion":"1.0","id":"af0a7e67-e2b8-484f-9bc1-6047d53b5d04","source":"http://dev.local","type":"release-event","datacontenttype":"application/json","time":"2025-03-07T15:05:54.636406-05:00","lockid":"03471a81-310a-47f5-8db3-cceebc63961a","data":{"name":"The Kraken","id":"86ebe1ee-9dd2-4e9b-b9a2-38e865ef1792"}}' |
+  ./bin/kafka-console-producer.sh \
+  --bootstrap-server <kafka-bootstrap-service>:<tls-port> \
+  --topic release-event \
+  --producer.config /tmp/client-ssl.properties
 ```
 
 After sending this event, you can observe the workflow complete its execution in the Orchestrator dashboard.
+
+You can view the last event produced by the workflow in Kafka by:
+```bash
+./bin/kafka-console-consumer.sh <kafka-bootstrap-service>:<tls-port> \
+  --topic released-event \
+  --from-beginning \
+  --consumer.config /tmp/client-ssl.properties
+```
 
 ## Conclusion
 
