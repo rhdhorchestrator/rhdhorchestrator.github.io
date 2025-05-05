@@ -89,11 +89,15 @@ registry.redhat.io/openshift-service-mesh/proxyv2-rhel8@sha256:b30d60cd458133430
 registry.redhat.io/openshift4/ose-kube-rbac-proxy-rhel9@sha256:3fcd8e2bf0bcb8ff8c93a87af2c59a3bcae7be8792f9d3236c9b5bbd9b6db3b2
 registry.redhat.io/rhel8/buildah@sha256:3d505d9c0f5d4cd5a4ec03b8d038656c6cdbdf5191e00ce6388f7e0e4d2f1b74
 registry.redhat.io/source-to-image/source-to-image-rhel8@sha256:6a6025914296a62fdf2092c3a40011bd9b966a6806b094d51eec5e1bd5026ef4
+registry.redhat.io/openshift-serverless-1/serverless-operator-bundle@sha256:93b945eb2361b07bc86d67a9a7d77a0301a0bad876c83a9a64af2cfb86c83bff
 ```
 
 The list of images was obtained by:
 ```bash
-podman run --rm --entrypoint bash registry.redhat.io/openshift-serverless-1/serverless-operator-bundle:1.35.0  -c "cat /manifests/serverless-operator.clusterserviceversion.yaml" | yq '.spec.relatedImages[].image' | sort | uniq
+IMG=registry.redhat.io/openshift-serverless-1/serverless-operator-bundle:1.35.0
+podman run --rm --entrypoint bash "$IMG" -c "cat /manifests/serverless-operator.clusterserviceversion.yaml" | yq '.spec.relatedImages[].image' | sort | uniq
+podman pull "$IMG"
+podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}'
 ```
 
 ### OpenShift Serverless Logic Operator:
@@ -108,7 +112,6 @@ registry.redhat.io/openshift-serverless-1/logic-swf-devmode-rhel8:1.35.0
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
 registry.redhat.io/openshift-serverless-1/logic-rhel8-operator@sha256:203043ca27819f7d039fd361d0816d5a16d6b860ff19d737b07968ddfba3d2cd
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
-registry.redhat.io/openshift-serverless-1/serverless-operator-bundle@sha256:93b945eb2361b07bc86d67a9a7d77a0301a0bad876c83a9a64af2cfb86c83bff
 registry.redhat.io/openshift4/ose-cli:latest
 
 gcr.io/kaniko-project/warmer:v1.9.0
