@@ -163,7 +163,8 @@ The packages required for the Orchestrator can be downloaded as tgz files from:
 * https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator/-/backstage-plugin-orchestrator-1.5.1.tgz
 * https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator-backend-dynamic/-/backstage-plugin-orchestrator-backend-dynamic-1.5.1.tgz
 * https://npm.registry.redhat.com/@redhat/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic/-/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic-1.5.1.tgz
-or using NPM packages from https://npm.registry.redhat.com e.g. by:
+  
+Or using NPM packages from https://npm.registry.redhat.com e.g. by:
 ```bash
   npm pack "@redhat/backstage-plugin-orchestrator@1.5.1" --registry=https://npm.registry.redhat.com
   npm pack "@redhat/backstage-plugin-orchestrator-backend-dynamic@1.5.1" --registry=https://npm.registry.redhat.com
