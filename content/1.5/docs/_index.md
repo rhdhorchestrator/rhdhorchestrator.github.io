@@ -12,12 +12,8 @@ Choose a section from the list below. For Orchestrator introduction, check the [
 
 # Release notes
 
-We are pleased to announce following features delivered as part of 1.5 release
-
-* Improved user experience
-* Go based operator
-* RBAC UI enhancements
-* Terraform workflow example
-* Workflows as templates
-* Improve Orchestrator Maintenance and Usability
-
+## New Featuers
+* Improved user experience - [FLPATH-1984](https://issues.redhat.com/browse/FLPATH-1984)
+* Orchestrator operator written in GoLang - [FLPATH-1613](https://issues.redhat.com/browse/FLPATH-1613)
+* RBAC UI enhancements - [FLPATH-1922](https://issues.redhat.com/browse/FLPATH-1922)
+* Workflows as templates - [FLPATH-1961](https://issues.redhat.com/browse/FLPATH-1961)
