@@ -20,30 +20,6 @@ registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:df9204cfad16b43ff00385609ef4e
 registry.redhat.io/rhel9/postgresql-15@sha256:450a3c82d66f0642eee81fc3b19f8cf01fbc18b8e9dbbd2268ca1f471898db2f
 ```
 
-The list of images was obtained by:
-```bash
-bash <<'EOF'
-set -euo pipefail
-
-IMG="registry.redhat.io/rhdh/rhdh-operator-bundle:1.5.1"
-DIR="local-manifests-rhdh"
-CSV="$DIR/rhdh-operator.clusterserviceversion.yaml"
-
-podman pull "$IMG" --quiet >/dev/null 2>&1
-BUNDLE_DIGEST=$(podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}')
-
-podman create --name temp "$IMG" > /dev/null
-podman cp temp:/manifests "$DIR"
-podman rm temp > /dev/null
-
-yq e '
-  .spec.install.spec.deployments[].spec.template.spec.containers[].image,
-  .spec.install.spec.deployments[].spec.template.spec.containers[].env[]
-  | select(.name | test("^RELATED_IMAGE_")).value
-' "$CSV" | cat - <(echo "$BUNDLE_DIGEST") | sort -u
-EOF
-```
-
 ### OpenShift Serverless Operator:
 ```
 registry.access.redhat.com/ubi8/nodejs-20-minimal@sha256:a2a7e399aaf09a48c28f40820da16709b62aee6f2bc703116b9345fab5830861
@@ -92,14 +68,6 @@ registry.redhat.io/source-to-image/source-to-image-rhel8@sha256:6a6025914296a62f
 registry.redhat.io/openshift-serverless-1/serverless-operator-bundle@sha256:93b945eb2361b07bc86d67a9a7d77a0301a0bad876c83a9a64af2cfb86c83bff
 ```
 
-The list of images was obtained by:
-```bash
-IMG=registry.redhat.io/openshift-serverless-1/serverless-operator-bundle:1.35.0
-podman run --rm --entrypoint bash "$IMG" -c "cat /manifests/serverless-operator.clusterserviceversion.yaml" | yq '.spec.relatedImages[].image' | sort | uniq
-podman pull "$IMG"
-podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}'
-```
-
 ### OpenShift Serverless Logic Operator:
 ```
 registry.redhat.io/openshift-serverless-1/logic-operator-bundle@sha256:a1d1995b2b178a1242d41f1e8df4382d14317623ac05b91bf6be971f0ac5a227
@@ -118,38 +86,10 @@ gcr.io/kaniko-project/warmer:v1.9.0
 gcr.io/kaniko-project/executor:v1.9.0
 ```
 
-```bash
-podman create --name temp-container registry.redhat.io/openshift-serverless-1/logic-operator-bundle:1.35.0-5
-podman cp temp-container:/manifests ./local-manifests-osl
-podman rm temp-container
-yq -r '.data."controllers_cfg.yaml" | from_yaml | .. | select(tag == "!!str") | select(test("^.*\\/.*:.*$"))' ./local-manifests-osl/logic-operator-rhel8-controllers-config_v1_configmap.yaml
-yq -r '.. | select(has("image")) | .image' ./local-manifests-osl/logic-operator-rhel8.clusterserviceversion.yaml
-```
-
 ### Orchestrator Operator:
 ```
 registry.redhat.io/rhdh-orchestrator-dev-preview-beta/controller-rhel9-operator@sha256:ea42a1a593af9433ac74e58269c7e0705a08dbfa8bd78fba69429283a307131a
 registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle@sha256:0a9e5d2626b4306c57659dbb90e160f1c01d96054dcac37f0975500d2c22d9c7
-```
-
-The list of images was obtained by:
-```bash
-bash <<'EOF'
-set -euo pipefail
-
-IMG="registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle:1.5-1744669755"
-DIR="local-manifests-orchestrator"
-CSV="$DIR/orchestrator-operator.clusterserviceversion.yaml"
-
-podman pull "$IMG" --quiet >/dev/null 2>&1
-BUNDLE_DIGEST=$(podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}')
-
-podman create --name temp "$IMG" > /dev/null
-podman cp temp:/manifests "$DIR"
-podman rm temp > /dev/null
-
-yq e '.spec.install.spec.deployments[].spec.template.spec.containers[].image' "$CSV" | cat - <(echo "$BUNDLE_DIGEST") | sort -u
-EOF
 ```
 
 > **Note:**  
@@ -169,4 +109,75 @@ Or using NPM packages from https://npm.registry.redhat.com e.g. by:
   npm pack "@redhat/backstage-plugin-orchestrator@1.5.1" --registry=https://npm.registry.redhat.com
   npm pack "@redhat/backstage-plugin-orchestrator-backend-dynamic@1.5.1" --registry=https://npm.registry.redhat.com
   npm pack "@redhat/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic@1.5.1" --registry=https://npm.registry.redhat.com
+```
+
+# For maintainers
+The images in this page were listed using the following set of commands, based on each of the operator bundle images:
+
+## RHDH
+
+The list of images was obtained by:
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+IMG="registry.redhat.io/rhdh/rhdh-operator-bundle:1.5.1"
+DIR="local-manifests-rhdh"
+CSV="$DIR/rhdh-operator.clusterserviceversion.yaml"
+
+podman pull "$IMG" --quiet >/dev/null 2>&1
+BUNDLE_DIGEST=$(podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}')
+
+podman create --name temp "$IMG" > /dev/null
+podman cp temp:/manifests "$DIR"
+podman rm temp > /dev/null
+
+yq e '
+  .spec.install.spec.deployments[].spec.template.spec.containers[].image,
+  .spec.install.spec.deployments[].spec.template.spec.containers[].env[]
+  | select(.name | test("^RELATED_IMAGE_")).value
+' "$CSV" | cat - <(echo "$BUNDLE_DIGEST") | sort -u
+EOF
+```
+
+## OpenShift Serverless
+
+The list of images was obtained by:
+```bash
+IMG=registry.redhat.io/openshift-serverless-1/serverless-operator-bundle:1.35.0
+podman run --rm --entrypoint bash "$IMG" -c "cat /manifests/serverless-operator.clusterserviceversion.yaml" | yq '.spec.relatedImages[].image' | sort | uniq
+podman pull "$IMG"
+podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}'
+```
+
+## OpenShift Serverless Logic
+
+```bash
+podman create --name temp-container registry.redhat.io/openshift-serverless-1/logic-operator-bundle:1.35.0-5
+podman cp temp-container:/manifests ./local-manifests-osl
+podman rm temp-container
+yq -r '.data."controllers_cfg.yaml" | from_yaml | .. | select(tag == "!!str") | select(test("^.*\\/.*:.*$"))' ./local-manifests-osl/logic-operator-rhel8-controllers-config_v1_configmap.yaml
+yq -r '.. | select(has("image")) | .image' ./local-manifests-osl/logic-operator-rhel8.clusterserviceversion.yaml
+```
+
+
+## Orchestrator
+The list of images was obtained by:
+```bash
+bash <<'EOF'
+set -euo pipefail
+
+IMG="registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle:1.5-1744669755"
+DIR="local-manifests-orchestrator"
+CSV="$DIR/orchestrator-operator.clusterserviceversion.yaml"
+
+podman pull "$IMG" --quiet >/dev/null 2>&1
+BUNDLE_DIGEST=$(podman image inspect "$IMG" --format '{{ index .RepoDigests 0 }}')
+
+podman create --name temp "$IMG" > /dev/null
+podman cp temp:/manifests "$DIR"
+podman rm temp > /dev/null
+
+yq e '.spec.install.spec.deployments[].spec.template.spec.containers[].image' "$CSV" | cat - <(echo "$BUNDLE_DIGEST") | sort -u
+EOF
 ```
