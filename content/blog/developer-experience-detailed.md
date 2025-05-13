@@ -1,6 +1,7 @@
 ---
 date: 2024-03-15
 title: 'Serverless Workflows: an Automated Developer Experience Step-by-Step'
+tag: ['Orhcestrator-1.4']
 ---
 In this blog, we'll guide you through the journey from a software template to bootstrapping the workflow development, building, packaging, releasing, and deploying it on a cluster. If you need a high-level explanation or want to dive into the architecture of the solution, check out our previous [blog](../developer-experience). You can also watch a detailed demonstration of the content covered in this post in this [recording](https://www.youtube.com/watch?v=G6wnRHjvhv0).
 
