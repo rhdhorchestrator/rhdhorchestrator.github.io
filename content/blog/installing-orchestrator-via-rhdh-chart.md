@@ -8,7 +8,7 @@ tags: [Orchestrator-1.7]
 
 This blog introduces a streamlined installation method that allows users to deploy Orchestrator alongside Red Hat Developer Hub (RHDH) using a Helm Chart and with minimal configuration and effort.
 
-With this approach, the Orchestrator Plugin is installed directly within RHDH and deployed to a single target namespace. As a result, all RHDH components, SonataFlow resources, and serverless workflows coexist within the same namespace, simplifying the deployment footprint and operational model.
+With this approach, the Orchestrator Plugins are installed directly within RHDH and deployed to a single target namespace. As a result, all RHDH components, Openshift Serverless Logic platform services, and serverless workflows coexist within the same namespace, simplifying the deployment footprint and operational model.
 
 ## Background: RHDH Helm Chart
 
@@ -22,19 +22,21 @@ Until recently, the only supported way to install Orchestrator was through the G
 
 The core functionality of Orchestrator is available in both installation methods:
 
-1. Orchestrator plugin add-on for RHDH is included
-1. Ability to run and monitor Serverless Workflows (via OpenShift Serverless Logic)
-1. Integration with Tekton and ArgoCD plugins
+1. The Orchestrator plugins as add-ons for RHDH are included
+1. The ability to run and monitor Serverless Workflows (via OpenShift Serverless Logic)
+1. Software templates and integration with Openshift Pipelines and Openshift Gitops.
 
 ### Differences
 
 1. **Feature Trimming**
-   - Developing Orchestrator via the RHDH Helm Chart required removing or deferring some features that were previously bundled in the Operator-based version.
-   - Some features are now available as post-installation options or in separate charts, like ArgoCD and Tekton integration, and software templates. 
+   - Installing Orchestrator via the RHDH Helm Chart no longer installs by default all components that were previously bundled in the Orchestrator Go-based Operator. Instead, deploying features like integration with Openshift-Gitops, Openshift-Pipelines, and software templates are handled by separate Helm Charts nd are configured post-install.
 
 1. **Permissions**
    - Using Orchestrator no longer requires cluster-wide permissions, and can now operate fully within a single namespace.
-   - Admin-scoped logic has been moved to a separate [`orchestrator-infra`](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/orchestrator-infra/README.md) chart.
+   -  Admin-level permissions are only required for installing the Openshift Serverless and Openshift Serverless Logic operators and the cluster-wide Knative services. 
+   -  To use the Orchestrator, only namespace-scope permissions are required, both for installing an RHDH instance and for deploying and running workflows.
+
+For more information on required infrastructure that requires Admin-level permissions, please advise the[`orchestrator-infra`](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/orchestrator-infra/README.md) chart.
 
 1. **Deployment Scope**
    - All components (Orchestrator, RHDH, workflows) are now deployed within a single namespace.
@@ -42,7 +44,7 @@ The core functionality of Orchestrator is available in both installation methods
 
 1. **Installation Method**
    - Previously installed via a Go-based Operator avaliable in Operator Hub.
-   - Now installed via Helm Charts (`backstage` and `orchestrator-infra`).
+   - For now installed via Helm Charts (`backstage` and `orchestrator-infra`).
 
 1. **Meta-Operator Behavior**
    - Orchestrator no longer acts as a meta-operator.
@@ -54,9 +56,9 @@ The core functionality of Orchestrator is available in both installation methods
 
 
 ## Comparing Operator and Helm Chart
-| Feature / Aspect            | Go-Based Operator                                     | Helm Chart                                                                 |
+| Feature / Aspect            | Orchestrator Go-Based Operator                                     | Helm Chart                                                                 |
 |----------------------------|-------------------------------------------------------|----------------------------------------------------------------------------|
-| Includes RHDH              | Yes (Orchestrator acts as a meta-operator)            | No (RHDH must be pre-installed separately)                                 |
+| Installs RHDH              | Yes (Orchestrator acts as a meta-operator)            | No (RHDH must be pre-installed separately)                                 |
 | Privileges                 | Requires cluster-wide permissions                     | Namespace-scoped; elevated permissions isolated in `orchestrator-infra`   |
 | Scope                      | Multi-namespace deployment                            | Single namespace for Orchestrator, RHDH, and workflows                    |
 | Operator Management        | Installs RHDH and other operators                     | Delegates operator installation to `orchestrator-infra` chart             |
@@ -74,7 +76,7 @@ The full Installtion steps can be found in the [RHDH Chart README](https://githu
 
 ### Dynamic Plugins
 
-Some additional plugins are required to be activated to allow Orchestrator to function. Please add these plugins to the values.yaml file used in the RHDH chart:
+Optionally, some workflows that users may use will send notifications to RHDH during their run. To run these types of workflows with Orchestrator, some additional plugins are required to be activated to allow Orchestrator to function. Please add these plugins to the values.yaml file used in the RHDH chart:
 
 ```
     plugins: 
