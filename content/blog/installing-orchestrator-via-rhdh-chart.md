@@ -10,12 +10,12 @@ This blog introduces a streamlined installation method that allows users to depl
 
 With this approach, the Orchestrator Plugins are installed directly within RHDH and deployed to a single target namespace. As a result, all RHDH components, Openshift Serverless Logic platform services, and serverless workflows coexist within the same namespace, simplifying the deployment footprint and operational model.
 
-A brief explenation of Orchestrator components is given to clarify any gaps before advancing in compaing the different installation types.
+A brief explanation of Orchestrator components is given to clarify any gaps before advancing in comparing the different installation types.
 
 ## Background: Orchestrator Components 
-Orchestrator utilizes several components to build, serve run and present serverless workflows, for example:
+Orchestrator utilizes several components to build, serve, run and present serverless workflows, for example:
 
-- *Red Hat Developer Hub (RHDH)*: This component acts as the UI, serving the Orchestrator plugins which allows the users to launch, monitor and manage workflows. On RHDH users can launch software templates, such as the orchestrator's [software templates](https://github.com/rhdhorchestrator/workflow-software-templates) which build serverless workflow projects. RHDH also integrates the ArgoCD and Tekton plugins, allowing for monitoring associated projects to the RHDH and Orchestrator instance. On RHDH, the notifications plugin can be configured, to be used with serverless workflows that send notifications. 
+- *Red Hat Developer Hub (RHDH)*: This component acts as the UI, serving the Orchestrator plugins which allows the users to launch, monitor and manage workflows. On RHDH, users can launch software templates, such as the orchestrator's [software templates](https://github.com/rhdhorchestrator/workflow-software-templates) which build serverless workflow projects. RHDH also integrates the ArgoCD and Tekton plugins, allowing for monitoring associated projects to the RHDH and Orchestrator instance. On RHDH, the notifications plugin can be configured, to be used with serverless workflows that send notifications. 
 
 - *Openshift Serverless Logic (OSL)*: This operator serves as the backend engine for running serverless workflows. Orchestrator uses OSL's sonataflow platform resources to launch and deploy workflows, and acts as the bridge between RHDH and OSL. Orchestrator is responsible for installing and configuring this operator. 
 
@@ -55,7 +55,7 @@ For more information on required infrastructure that requires Admin-level permis
    - This simplifies resource management and access control.
 
 1. **Installation Method**
-   - Previously installed via a Go-based Operator avaliable in Operator Hub.
+   - Previously installed via a Go-based Operator available in Operator Hub.
    - For now installed via Helm Charts (`backstage` and `orchestrator-infra`).
 
 1. **Meta-Operator Behavior**
@@ -80,7 +80,7 @@ For more information on required infrastructure that requires Admin-level permis
 
 ## Using backstage chart to install Orchestrator
 
-The full Installtion steps can be found in the [RHDH Chart README](https://github.com/redhat-developer/rhdh-chart/tree/main/charts/backstage#:~:text=Installing%20RHDH%20with%20Orchestrator%20on%20OpenShift)
+The full Installation steps can be found in the [RHDH Chart README](https://github.com/redhat-developer/rhdh-chart/tree/main/charts/backstage#:~:text=Installing%20RHDH%20with%20Orchestrator%20on%20OpenShift)
 
 ## Post-install configurations
 
