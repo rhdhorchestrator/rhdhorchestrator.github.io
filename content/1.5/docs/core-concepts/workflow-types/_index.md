@@ -4,7 +4,7 @@ date: 2024-05-07
 ---
 
 > **🚨 Deprecation Notice: 🚨**  
-> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assesment workflow. <br>
+> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
 
 The Orchestrator features two primary workflow categories:
 - *Infrastructure workflows*: focus on automating infrastructure-related tasks

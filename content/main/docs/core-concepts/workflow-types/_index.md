@@ -4,7 +4,7 @@ date: 2024-05-07
 ---
 
 > **🚨 Deprecation Notice: 🚨**  
-> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assesment workflow. <br>
+> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
 > The following document will relevant up to Orchestrator version 1.6.
 
 
@@ -71,7 +71,6 @@ The *workflowOptions* object must possess six essential attributes with specific
 
 ##### Examples:
 - [MTA](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/workflows/mta-v7.x/mta.sw.yaml)
-- [Dummy Assessment](https://github.com/rhdhorchestrator/serverless-workflow-examples/tree/main/assessment)
 
 #### Note
 If the aforementioned annotation is missing in the workflow definition file, the Orchestrator plugin will default to treating the workflow as an infrastructure workflow, without considering its output.

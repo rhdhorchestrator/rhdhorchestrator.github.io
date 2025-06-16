@@ -12,7 +12,7 @@ This quickstart guide will help you install the Orchestrator using the Helm-base
    Follow the [installation instructions for Orchestrator](/main/docs/installation/).
 
 2. **Install a sample workflow**:
-   Follow the [installation instructions for the greetings workflow](https://github.com/rhdhorchestrator/serverless-workflows-config/blob/main/docs/release-1.5/greeting/README.md).
+   Follow the [installation instructions for the greetings workflow](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/deploy/docs/release-1.5/greeting/README.md).
 
 3. **Access Red Hat Developer Hub**:
    Open your web browser and navigate to the Red Hat Developer Hub application. Retrieve the URL using the following OpenShift CLI command.

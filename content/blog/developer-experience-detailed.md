@@ -51,7 +51,7 @@ On the second screen, you'll need to select the workflow type. You can learn mor
 - **Workflow Type** - There are two supported types: infrastructure for operations returning output, and assessment for evaluation/assessment leading to potential infrastructure workflows.
 
 > **🚨 Deprecation Notice: 🚨**  
-> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assesment workflow. <br>
+> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
 > The following document will relevant up to Orchestrator version 1.6.
 
 On the final screen, you'll be prompted to input the CI/CD parameters and persistence-related parameters.
@@ -60,7 +60,7 @@ On the final screen, you'll be prompted to input the CI/CD parameters and persis
 - **GitOps Namespace** - Namespace for GitOps secrets and ArgoCD application creation. The default *orchestrator-gitops* complies with the default installation steps of the Orchestrator deployment.
 - **Quay Organization Name** - Organization name in Quay for the published workflow. The Tekton pipeline pushes the workflow to this organization.
 - **Quay Repository Name** - Repository name in Quay for the published workflow, which must exist before deploying GitOps. The secret created in the GitOps Namespace needs permission to push to this repository.
-- **Enable Persistance** - Check this option to enable persistence for the workflow. It ensures each workflow persists its instances in a configured database schema, with the schema name matching the workflow ID. Persistence is recommended for long-running workflows and to support the Abort operation.
+- **Enable Persistence** - Check this option to enable persistence for the workflow. It ensures each workflow persists its instances in a configured database schema, with the schema name matching the workflow ID. Persistence is recommended for long-running workflows and to support the Abort operation.
 - **Database properties** - Self-explanatory list of database properties.
 
 After providing all parameters, click Review, ensure correctness, and then click Create. Successful creation leads to:
