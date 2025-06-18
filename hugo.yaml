@@ -48,6 +48,8 @@ params:
   version_menu_pagelinks: false
   url_latest_version: https://rhdhorchestrator.io
   versions:
+    - version: 1.6
+      url: "/1.6/docs"  
     - version: 1.5
       url: "/1.5/docs"
     - version: 1.4
