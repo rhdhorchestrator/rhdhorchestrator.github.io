@@ -120,3 +120,86 @@ functions:
 
 You can see a full example here: https://github.com/rhdhorchestrator/workflow-token-propagation-example.
 
+# Configuring OIDC properties at SonataFlowPlatform level (Cluster-wide OIDC configuration) 
+This short guide shows how to inject the Quarkus OIDC settings once at platform‑scope so that all present and future workflows automatically authenticate incoming requests and expose $WORKFLOW.identity.
+
+# Prerequisites
+* Namespace where the operator & workflows run
+* Keycloak Realm URL
+* Client‑ID
+* Client‑secret
+* Platform CR name
+
+Keep the client secret in a Secrets vault; don’t embed it as clear‑text in the CR.
+
+## Create the supporting objects
+1. Secret: holds the confidential client secret
+
+e.g
+```
+oc create secret generic oidc-client-secret \
+  -n sonataflow-infra \
+  --from-literal=cred=swf-client-secret
+```
+
+2. ConfigMap: holds the non‑secret values
+
+e.g
+```
+oc create configmap oidc-common-props \
+  -n sonataflow-infra \
+  --from-literal=authServer=https://keycloak-host/realms/dev \
+  --from-literal=clientId=swf-client \
+  --from-literal=tokenHeader=X-Authorization \
+  --from-literal=issuer=any
+```  
+
+## Patch the SonataFlowPlatform CR
+1. Create patch.yaml (or paste inline):
+
+e.g
+```
+spec:
+  properties:
+    flow:
+    - name: quarkus.oidc.auth-server-url
+      value: https://keycloak-host/realms/dev
+    - name: quarkus.oidc.client-id
+      value: swf-client
+    - name: quarkus.oidc.token.header
+      value: X-Authorization
+    - name: quarkus.oidc.token.issuer
+      value: any
+    - name: quarkus.oidc.credentials.secret
+      valueFrom:
+        secretKeyRef:
+          key: cred
+          name: oidc-client-secret
+```
+
+2. Apply the patch:
+
+e.g
+```
+oc patch sonataflowplatform <Platform CR name> \
+  -n sonataflow-infra \
+  --type merge \
+  -p "$(cat patch.yaml)"
+```
+
+Wait a few seconds for the operator reconcile loop.
+
+## Verify the managed properties
+
+e.g
+```
+oc get sonataflowplatform <Platform CR name> -n sonataflow-infra -o yaml
+``` 
+You should see all five keys.
+
+Restart running workflow deployments once so Quarkus reloads the file:
+
+e.g
+```
+oc rollout restart deployment -l sonataflow.org/workflow -n sonataflow-infra
+``` 
