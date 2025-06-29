@@ -4,8 +4,8 @@ date: 2024-05-07
 ---
 
 > **🚨 Deprecation Notice: 🚨**  
-> In the current Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
-> The following document is relevant up to Orchestrator version 1.6.
+> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
+> The following document will be relevant up to Orchestrator version 1.6.
 
 
 The Orchestrator features two primary workflow categories:
@@ -25,9 +25,9 @@ annotations:
 The Orchestrator plugin utilizes this metadata to facilitate the processing and visualization of infrastructure workflow inputs and outputs within the user interface.
 
 ##### Examples:
-- [Greeting](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/workflows/greeting/greeting.sw.yaml)
-- [Ticket Escalation](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/workflows/escalation/ticketEscalation.sw.yaml)
-- [Move2Kube](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/workflows/move2kube/m2k.sw.yml)
+- [Greeting](https://github.com/rhdhorchestrator/serverless-workflows/blob/v1.6.x/workflows/greeting/greeting.sw.yaml)
+- [Ticket Escalation](https://github.com/rhdhorchestrator/serverless-workflows/blob/v1.6.x/workflows/escalation/ticketEscalation.sw.yaml)
+- [Move2Kube](https://github.com/rhdhorchestrator/serverless-workflows/blob/v1.6.x/workflows/move2kube/m2k.sw.yml)
 
 
 ### Assessment workflow
@@ -70,7 +70,7 @@ The *workflowOptions* object must possess six essential attributes with specific
 ```
 
 ##### Examples:
-- [MTA](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/workflows/mta-v7.x/mta.sw.yaml)
+- [MTA](https://github.com/rhdhorchestrator/serverless-workflows/blob/v1.6.x/workflows/mta-v7.x/mta.sw.yaml)
 
 #### Note
 If the aforementioned annotation is missing in the workflow definition file, the Orchestrator plugin will default to treating the workflow as an infrastructure workflow, without considering its output.
