@@ -52,7 +52,7 @@ On the second screen, you'll need to select the workflow type. You can learn mor
 
 > **🚨 Deprecation Notice: 🚨**  
 > In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
-> The following document will relevant up to Orchestrator version 1.6.
+> The following document will be relevant up to Orchestrator version 1.6.
 
 On the final screen, you'll be prompted to input the CI/CD parameters and persistence-related parameters.
 - **Select a CI/CD method** - Choosing *None* means no GitOps resources are created in target repositories, only the workflow source repository. Selecting *Tekton with ArgoCD* creates two repositories: one for the workflow and another for GitOps resources for deploying the built workflow on a cluster.

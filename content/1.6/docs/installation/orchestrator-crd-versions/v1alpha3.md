@@ -5,13 +5,13 @@ date: 2025-04-20
 
 The Go-Based Operator was introduced in Orchestrator 1.5 since the helm-based operator is currently in maintenance mode.
 Also, with major changes to the CRD, the v1alpha3 version
-of [Orchestrator CRD](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/release-1.5/config/crd/bases/rhdh.redhat.com_orchestrators.yaml)
+of [Orchestrator CRD](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/release-1.6/config/crd/bases/rhdh.redhat.com_orchestrators.yaml)
 was introduced and is not backward compatible.
 
-In this version, the CRD field structure has completely changed with most fields either removed or renamed and
+In 1.6 version, the CRD field structure has completely changed with most fields either removed or renamed and
 restructured.
 To see more information about the CRD fields, check out the
-full [Parameter list](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/release-1.5/docs/crd/README.md).
+full [Parameter list](https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/release-1.6/docs/crd/README.md).
 
 The following Orchestrator CR is a sample of the api v1alpha3 version.
 
@@ -71,4 +71,4 @@ spec:
 ```
 
 Migrating to the v1alpha3 CRD version involves upgrading the operator. Please follow
-the [Operator Upgrade documentation](https://github.com/rhdhorchestrator/orchestrator-go-operator/tree/release-1.5?tab=readme-ov-file#upgrading-the-operator)
+the [Operator Upgrade documentation](https://github.com/rhdhorchestrator/orchestrator-go-operator/tree/release-1.6?tab=readme-ov-file#upgrading-the-operator)
