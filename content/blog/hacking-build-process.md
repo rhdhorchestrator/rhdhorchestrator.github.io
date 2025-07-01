@@ -9,16 +9,10 @@ In this guide, we'll dive under the hood of the serverless workflow build proces
 
 ## The Problem
 
-We're working with a [repository](https://github.com/masayag/poc-kafka-logic-operator) that contains an issue with the standard workflow build script described in our [previous post](./building-and-deploying-workflows.md). When running the script, you'll encounter [an error](https://github.com/apache/incubator-kie-tools/issues/3084) - the manifests can't be generated due to an incompatible workflow spec, specifically with the `eventRef` element.
-
-Interestingly, if you run the workflow using `mvn clean quarkus:dev`, it starts successfully. This reveals a discrepancy between:
-- The sonataflow-runtimes library that runs the workflow
-- The spec definition used by the kn-workflow v1.35 tool to generate manifests
-
-Instead of using the standard script, we'll explore a workaround to deploy the [lock-flow workflow](https://github.com/masayag/poc-kafka-logic-operator/blob/main/callback-flow/src/main/resources/lock.sw.yaml) to an OCP cluster using the gitops profile.
+We're working with a [repository](https://github.com/rhdhorchestrator/orchestrator-demo/tree/main/08_kafka_events) that contains an issue with the standard workflow build script described in our [previous post](./building-and-deploying-workflows.md).
 
 ## Prerequisites
-- Have kn-workflow CLI installed with a fix from [this repository](https://github.com/rhdhorchestrator/orchestrator-demo/releases/tag/v1.36-kn-workflow) or from [official link](https://mirror.openshift.com/pub/cgw/serverless-logic/latest/) when v1.36 is available.
+- Have kn-workflow CLI installed from [official link](https://mirror.openshift.com/pub/cgw/serverless-logic/latest/) with version >= v1.36.
 - Have a kafka cluster running on an OCP cluster
 - Have RHDH and the orchestrator installed
 
@@ -317,12 +311,14 @@ You can view the last event produced by the workflow in Kafka by:
 
 By following this guide, you've learned how to:
 
-1. Work around build process issues in serverless workflows
-2. Generate and customize Kubernetes manifests for workflow deployment
-3. Enable critical production features like persistence and TLS security
-4. Test Kafka-based workflows using cloud events
+1. Generate and customize Kubernetes manifests for workflow deployment
+2. Enable critical production features like persistence and TLS security
+3. Test Kafka-based workflows using cloud events
 
 These techniques allow you to deploy complex workflows even when standard tools encounter compatibility issues, giving you more control over your serverless infrastructure.
+
+## References
+More information about Soantaflow and Kafka can be found [here](https://sonataflow.org/serverlessworkflow/main/use-cases/advanced-developer-use-cases/event-orchestration/consume-producing-events-with-kafka.html).
 
 ## Acknowledgments
 
