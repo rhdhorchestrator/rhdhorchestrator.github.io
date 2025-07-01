@@ -14,10 +14,10 @@ The following images need to be added to the image registry:
 
 ### RHDH Operator:
 ```
-registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:5d6031e2e09781d89be8f6c1b72bc95d886bc19d358eb0e04bd57c58a153ae42
-registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:c99f378315b703b586196ea3978e3858e2c73d4b16d761700efafc9a82e618d9
-registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:22aca022b1285c947e05b263ffc87152658d967359b55903a9e50fa2ba264656
-registry.redhat.io/rhel9/postgresql-15@sha256:13afc0c65af0ff1c1362ed9fbc3112a71edd76a54e6811883f44ef4927905e46
+registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:8729c21dc4b6e1339ed29bf87e2e2054c8802f401a029ebb1f397408f3656664
+registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:f2d99c68895d8e99cfd132c78bc39be5f2d860737f6e7d2520167404880ed865
+registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2f72c8706af43c0fbf8afc82d1925c77887aa7c3c3b1cb28f698bc4e4241ed4d
+registry.redhat.io/rhel9/postgresql-15@sha256:ddf4827c9093a0ec93b5b4f4fd31b009c7811c38a406187400ab448579036c6c
 ```
 
 ### OpenShift Serverless Operator:
@@ -91,6 +91,7 @@ registry.redhat.io/openshift-serverless-1/logic-rhel8-operator@sha256:8d3682448e
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
 registry.redhat.io/openshift-serverless-1/logic-rhel8-operator@sha256:8d3682448ebdac3aeabb2d23842b7e67a252b95f959c408af805037f9728fd3c
 registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf94c817fbbc270698a9399d8a21ee1005d85ceda56
+registry.redhat.io/openshift-serverless-1/logic-operator-bundle@sha256:5fff2717f7b08df2c90a2be7bfb36c27e13be188d23546497ed9ce266f1c03f4
 ```
 
 ### Orchestrator Operator:
@@ -125,12 +126,14 @@ The images in this page were listed using the following set of commands, based o
 
 ## RHDH
 
+The RHDH bundle version should match the one being used by the Orchestrator operator as pointed by the (rhdhSubscriptionStartingCSV attribute)[https://github.com/rhdhorchestrator/orchestrator-go-operator/blob/main/internal/controller/rhdh/backstage.go#L31].
+
 The list of images was obtained by:
 ```bash
 bash <<'EOF'
 set -euo pipefail
 
-IMG="registry.redhat.io/rhdh/rhdh-operator-bundle:1.6.2"
+IMG="registry.redhat.io/rhdh/rhdh-operator-bundle:1.6.1"
 DIR="local-manifests-rhdh"
 CSV="$DIR/rhdh-operator.clusterserviceversion.yaml"
 
@@ -168,7 +171,6 @@ podman rm temp-container
 yq -r '.data."controllers_cfg.yaml" | from_yaml | .. | select(tag == "!!str") | select(test("^.*\\/.*:.*$"))' ./local-manifests-osl/logic-operator-rhel8-controllers-config_v1_configmap.yaml
 yq -r '.. | select(has("image")) | .image' ./local-manifests-osl/logic-operator-rhel8.clusterserviceversion.yaml
 ```
-
 
 ## Orchestrator
 The list of images was obtained by:
