@@ -28,7 +28,7 @@ The [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart) allows use
 
 ## Comparing to the Orchestrator Operator
 
-Until recently, the only supported way to install Orchestrator was through the Go-based Operator, available in the RHDH Operator Catalog for OpenShift clusters. Now, with the introduction of a Helm chart alternative, users have a more flexible installation option. While both methods enable the core capabilities of Orchestrator, they differ in architecture, permissions, and deployment scope. This section highlights the key similarities and differences between the two approaches.
+Until recently, the only supported way to install Orchestrator was through the Orchestrator Operator, available in the Operator Catalog for OpenShift clusters. Now, with the introduction of a Helm chart alternative, users have a more flexible installation option. While both methods enable the core capabilities of Orchestrator, they differ in architecture, permissions, and deployment scope. This section highlights the key similarities and differences between the two approaches.
 
 ### Similarity 
 
@@ -41,7 +41,7 @@ The core functionality of Orchestrator is available in both installation methods
 ### Differences
 
 1. **Feature Trimming**
-   - Installing Orchestrator via the RHDH Helm Chart no longer installs by default all components that were previously bundled in the Orchestrator Go-based Operator. Instead, deploying features like integration with Openshift-Gitops, Openshift-Pipelines, and software templates are handled by separate Helm Charts and are configured post-install.
+   - Installing Orchestrator via the RHDH Helm Chart no longer installs by default all components that were previously bundled in the Orchestrator Operator. Instead, deploying features like integration with Openshift-Gitops, Openshift-Pipelines, and software templates are handled by separate Helm Charts and are configured post-install.
 
 1. **Permissions**
    - Using Orchestrator no longer requires cluster-wide permissions, and can now operate fully within a single namespace.
@@ -55,7 +55,7 @@ For more information on required infrastructure that requires Admin-level permis
    - This simplifies resource management and access control.
 
 1. **Installation Method**
-   - Previously installed via a Go-based Operator available in Operator Hub.
+   - Previously installed via a dedicated Operator available in Operator Hub.
    - For now installed via Helm Charts (`backstage` and `orchestrator-infra`).
 
 1. **Meta-Operator Behavior**
@@ -68,7 +68,7 @@ For more information on required infrastructure that requires Admin-level permis
 
 
 ## Comparing Operator and Helm Chart
-| Feature / Aspect            | Orchestrator Go-Based Operator                                     | Helm Chart                                                                 |
+| Feature / Aspect            | Orchestrator Operator                                     | Helm Chart                                                                 |
 |----------------------------|-------------------------------------------------------|----------------------------------------------------------------------------|
 | Installs RHDH              | Yes (Orchestrator acts as a meta-operator)            | Yes (The `backstage` chart installs RHDH and Orchestrator)                                 |
 | Privileges                 | Requires cluster-wide permissions                     | Namespace-scoped; elevated permissions isolated in `orchestrator-infra`   |
