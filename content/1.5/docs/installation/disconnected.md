@@ -88,8 +88,8 @@ gcr.io/kaniko-project/executor:v1.9.0
 
 ### Orchestrator Operator:
 ```
-registry.redhat.io/rhdh-orchestrator-dev-preview-beta/controller-rhel9-operator@sha256:d517e9100baf528be8e108571fdfb785af50790ca6927b5c330ffcb81325ca70
-registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle@sha256:82b8d33feb13b8a22f6158d3a8c03bb0edb4be8b70cfa13d9218fd6bfb80dbc8
+registry.redhat.io/rhdh-orchestrator-dev-preview-beta/controller-rhel9-operator@sha256:f435c94111997174c47d3231466fc7599260af403d9c9876404dec073ecdc5f3
+registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle@sha256:ef0e082c909e6e7e7e40d400936ddbecf936a353c009df49c9d3d70a7aeab32a
 ```
 
 > **Note:**  
@@ -167,7 +167,7 @@ The list of images was obtained by:
 bash <<'EOF'
 set -euo pipefail
 
-IMG="registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle:1.5-1749494606"
+IMG="registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle:1.5-1751480231"
 DIR="local-manifests-orchestrator"
 CSV="$DIR/orchestrator-operator.clusterserviceversion.yaml"
 
