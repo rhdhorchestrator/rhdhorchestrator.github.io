@@ -51,7 +51,7 @@ On the second screen, you'll need to select the workflow type. You can learn mor
 - **Workflow Type** - There are two supported types: infrastructure for operations returning output, and assessment for evaluation/assessment leading to potential infrastructure workflows.
 
 > **🚨 Deprecation Notice: 🚨**  
-> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
+> In Orchestrator 1.7 release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
 > The following document will be relevant up to Orchestrator version 1.6.
 
 On the final screen, you'll be prompted to input the CI/CD parameters and persistence-related parameters.
