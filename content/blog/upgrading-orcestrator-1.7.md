@@ -19,46 +19,194 @@ These components remain available in RHDH v1.7. However, instead of the Orchestr
 
 ### Database Management
 
-Orchestrator v1.6 supports two database management options, both of which remain available in RHDH v1.7:
+RHDH supports two database management options:
 
-1. **Local PostgreSQL instance**: Installed via Helm chart, serving the SonataFlow Platform with schemas for Orchestrator workflows
-2. **External database**: Configured in the SonataFlow Platform as the designated database instance
+1. **Local PostgreSQL instance**: A local PostgreSQL instance that gets installed by a [Helm Chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql)
+2. **External database**: A PostgreSQL instance that is managed separately, and its connection configuration is known to the admin.
 
-Understanding these options is crucial for the upgrade process, as you'll need to configure an external database connection to preserve your existing data.
+We will present different upgrade options that include these two Database Management options.
 
-## Upgrade Process Overview
+## Upgrading with RHDH Helm Chart (One PostgreSQL Instance)
 
-To upgrade from Orchestrator v1.6 to RHDH v1.7:
+**Prerequisites**: Familiarize yourself with [deploying RHDH via Helm Chart](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/installing_red_hat_developer_hub_on_openshift_container_platform/assembly-install-rhdh-ocp-helm).
 
-1. **Install RHDH v1.7** via the RHDH Operator or RHDH Helm Chart
-2. **Migrate SonataFlow resources** from the `sonataflow-infra` namespace (or your custom namespace) to the RHDH installation namespace
-3. **Move workflow deployments** (SonataFlow CRs) to the new namespace
-4. **Configure external database connection** to preserve existing data
+This upgrade method involves the following steps:
 
-The key strategy is to treat your existing SonataFlow Platform database as an external database for the new RHDH installation.
-
-## Upgrading with RHDH Helm Chart
-
-**Prerequisites**: Familiarize yourself with [deploying RHDH via Helm Chart](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.1/html/administration_guide_for_red_hat_developer_hub/assembly-install-rhdh-ocp#proc-install-rhdh-ocp-helm_admin-rhdh).
+1. **Prepare for installation**
+2. **Configure external database connection** to use a single PostgreSQL instance for both RHDH and SonataFlow
+3. **Install RHDH v1.7** via the RHDH Helm Chart
+4. **Migrate SonataFlow resources** from the `sonataflow-infra` namespace (or your custom namespace) to the RHDH installation namespace
+5. **Migrate workflow deployments** (SonataFlow CRs) to the new namespace
 
 ### Steps
 
 1. **Prepare for installation**:
 
-   - Delete the Orchestrator CR and the Backstage CR that was previously used
-   - Disable or delete your existing SonataFlow Platform before installation
-   - The Helm installation will create a new SonataFlow Platform in the same namespace as RHDH
-   - The installation will reuse your existing 'sonataflow' database if found
-   
-1. **Configure external database connection** following the [RHDH external database documentation](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md). Create a secret containing PostgreSQL connection properties. This guide will also have additional values for the Helm Chart, that will be used in the next step.
+   - Delete the Orchestrator CR and the Backstage CR that was previously used in v1.6
+   - Disable or delete your existing SonataFlow Platform.
 
-1. **Install RHDH with Orchestrator** using the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/backstage), following the external database configuration guide. Make sure to include the extra values issued by the external-db installation doc from the former point.
+2. **Configure external database connection** following the [RHDH external database documentation](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md). Create a secret containing PostgreSQL connection properties. This guide will also have additional values for the Helm Chart, that will be used in the next step.
 
+3. **Install RHDH v1.7 with Orchestrator** using the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/backstage), following the external database configuration guide. Make sure to include the following in the values.yaml:
 
-1. **Migrate workflows**: After installation, migrate any existing workflow deployments (SonataFlow CRs) to the RHDH namespace.
+- Make sure to have "orchestrator" and "serverlessLogicOperator" enabled.
+
+```yaml
+orchestrator:
+  enabled: true
+  serverlessLogicOperator:
+    enabled: true
+  serverlessOperator:
+    enabled: true
+```
+
+- Include the extra values issued by the external-db installation doc from the former point.
+
+The Helm installation will create a new SonataFlow Platform in the same namespace as RHDH. The installation will reuse your existing 'sonataflow' database if found. The same PostgreSQL instance will be used for both RHDH and SonataFlow.
+
+4. **Migrate workflows**: After installation, migrate any existing workflow deployments (SonataFlow CRs) to the RHDH namespace.
+
+## Upgrading with RHDH Helm Chart (Two PostgreSQL Instances)
+
+In this upgrade scenario we will create a new PostgreSQL instance for RHDH to use, while keeping intact all resources in the sonataflow-infra. After installation, we will reconfigure the Orchestrator plugins to point to the old previously used PostgreSQL instance.
+
+This upgrade method involves the following steps:
+
+1. **Prepare for installation**
+2. **Install RHDH v1.7** via the RHDH Helm Chart _without_ OpenShift Serverless and OpenShift Serverless Logic
+3. **Update Orchestrator Plugins**
+4. **Post Install Configurations**
+
+### Steps
+
+1. **Prepare for installation**:
+
+   - Delete the Orchestrator CR and the Backstage CR that was previously used in v1.6
+
+2. **Install RHDH v1.7 and Configure Orchestrator Plugin** using the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/backstage).
+   Make sure to include the following in the values.yaml:
+
+- Make sure to have "orchestrator" enabled and "serverlessLogicOperator" disabled.
+
+```yaml
+orchestrator:
+  enabled: true
+  serverlessLogicOperator:
+    enabled: false
+  serverlessOperator:
+    enabled: false # optional
+```
+
+Some orchestrator plugins require plugin configurations that include the URL for the SonataFlow Data Index.
+Edit the values.yaml in the appropriate places to use the namespace that holds SonataFlow resources.
+
+```yaml
+pluginConfig:
+  orchestrator:
+    dataIndexService:
+      url: http://sonataflow-platform-data-index-service.sonataflow-infra
+```
+
+Finally, Helm Install the Chart.
+
+3. **Post Install Configurations**
+   Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
+
+```console
+   oc create -f - <<EOF
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: allow-rhdh-to-sonataflow-and-workflows
+     namespace: ${RHDH_INSTALL_NS}
+   spec:
+     podSelector: {}
+     ingress:
+       - from:
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the RHDH namespace.
+               kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Workflow namespace.
+               kubernetes.io/metadata.name: sonataflow-infra
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Eventing namespace.
+               kubernetes.io/metadata.name: knative-eventing
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Serving namespace.
+               kubernetes.io/metadata.name: knative-serving
+   EOF
+```
 
 ## Upgrading with RHDH Operator
 
-**Prerequisites**: Familiarize yourself with [deploying RHDH via Operator](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.1/html/administration_guide_for_red_hat_developer_hub/assembly-install-rhdh-ocp#proc-install-rhdh-ocp-operator_admin-rhdh).
+**Prerequisites**: Familiarize yourself with [deploying RHDH via Operator](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/about_red_hat_developer_hub/index).
 
-// TBA
+Using the RHDH Operator, we will not be reinstalling all SonataFlow resources, rather reusing the resources created by the Orchestrator operator.
+
+We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the _orchestrator plugin dependency disabled_. This will make the installation skip creating new SonataFlow resources.
+
+This upgrade method involves the following steps:
+
+1. **Prepare for installation**
+2. **Install RHDH v1.7** via the RHDH Operator
+3. **Update Orchestrator Plugins**
+
+### Steps
+
+1. **Prepare for installation**:
+
+   - Delete the Orchestrator CR and the Backstage CR that was previously used in v1.6
+
+2. **Install RHDH v1.7 and Configure Orchestrator Plugin** using the [RHDH Operator](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/about_red_hat_developer_hub/index).
+
+// TBA - Instructions for installing the RHDH operator with orchestrator -- link to documentation?
+
+3. **Update Orchestrator Plugins**
+   Some orchestrator plugins require plugin configurations that include the URL for the SonataFlow Data Index.
+   After the operator has been installed, edit your dynamic plugin config map, and then restart RHDH.
+   Change the Data Index Service URL in the Plugin Configs that require it.
+
+```yaml
+pluginConfig:
+  orchestrator:
+    dataIndexService:
+      url: http://sonataflow-platform-data-index-service.sonataflow-infra
+```
+
+4. **Post Install Configurations**
+   Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
+
+```console
+   oc create -f - <<EOF
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: allow-rhdh-to-sonataflow-and-workflows
+     namespace: ${RHDH_INSTALL_NS}
+   spec:
+     podSelector: {}
+     ingress:
+       - from:
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the RHDH namespace.
+               kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Workflow namespace.
+               kubernetes.io/metadata.name: sonataflow-infra
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Eventing namespace.
+               kubernetes.io/metadata.name: knative-eventing
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Serving namespace.
+               kubernetes.io/metadata.name: knative-serving
+   EOF
+```
