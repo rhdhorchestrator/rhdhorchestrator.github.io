@@ -107,6 +107,10 @@ pluginConfig:
       url: http://sonataflow-platform-data-index-service.sonataflow-infra
 ```
 
+The plugins that require this configuration are the "backstage-plugin-scaffolder-backend-module-orchestrator-dynamic" and the "backstage-plugin-orchestrator-backend-dynamic".
+
+Replace "sonataflow-infra" with whatever namespace you have previously installed your workflows and sonataflow resources in.
+
 Finally, Helm Install the Chart.
 
 3. **Post Install Configurations**
@@ -130,7 +134,7 @@ Finally, Helm Install the Chart.
          - namespaceSelector:
              matchLabels:
                # Allow traffic from pods in the Workflow namespace.
-               kubernetes.io/metadata.name: sonataflow-infra
+               kubernetes.io/metadata.name: ${WORKFLOW_NS}
          - namespaceSelector:
              matchLabels:
                # Allow traffic from pods in the Knative Eventing namespace.
@@ -164,7 +168,18 @@ This upgrade method involves the following steps:
 
 2. **Install RHDH v1.7 and Configure Orchestrator Plugin** using the [RHDH Operator](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/about_red_hat_developer_hub/index).
 
-// TBA - Instructions for installing the RHDH operator with orchestrator -- link to documentation?
+Please follow the instructions to install RHDH v1.7 with orchestrator enabled, see the [README](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/docs/orchestrator.md).
+
+As for RHDH 1.7 all of the Orchestrator plugins are included in the default dynamic-plugins.yaml file of install-dynamic-plugins container but disabled by default. To enable the orchestrator plugin, you should refer the dynamic plugins ConfigMap with following data in your Backstage Custom Resource (CR) and put "false" under the "disabled" level.
+
+Please note to *not* include the dependencies for the orchestrator plugin:
+```yaml
+        # Do NOT add this
+         dependencies:
+            - ref: sonataflow
+```
+
+Adding the dependencies will trigger the new installation of Sonataflow resources. On this upgrade scenario, we would like to reuse our old sonataflow resources.
 
 3. **Update Orchestrator Plugins**
    Some orchestrator plugins require plugin configurations that include the URL for the SonataFlow Data Index.
@@ -177,6 +192,10 @@ pluginConfig:
     dataIndexService:
       url: http://sonataflow-platform-data-index-service.sonataflow-infra
 ```
+
+Replace "sonataflow-infra" with whatever namespace you have previously installed your workflows and sonataflow resources in.
+
+The plugins that require this configuration are the "backstage-plugin-scaffolder-backend-module-orchestrator-dynamic" and the "backstage-plugin-orchestrator-backend-dynamic". 
 
 4. **Post Install Configurations**
    Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
@@ -199,7 +218,7 @@ pluginConfig:
          - namespaceSelector:
              matchLabels:
                # Allow traffic from pods in the Workflow namespace.
-               kubernetes.io/metadata.name: sonataflow-infra
+               kubernetes.io/metadata.name: ${WORKFLOW_NS}
          - namespaceSelector:
              matchLabels:
                # Allow traffic from pods in the Knative Eventing namespace.
