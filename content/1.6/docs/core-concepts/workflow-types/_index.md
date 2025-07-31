@@ -4,7 +4,7 @@ date: 2024-05-07
 ---
 
 > **🚨 Deprecation Notice: 🚨**  
-> In the next Orchestrator release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
+> In Orchestrator 1.7 release, Workflow Types will be retired. All workflows will act as infrastructure workflows, and no workflow will act as an assessment workflow. <br>
 > The following document will be relevant up to Orchestrator version 1.6.
 
 
