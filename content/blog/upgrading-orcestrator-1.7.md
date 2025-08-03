@@ -17,7 +17,12 @@ Orchestrator v1.6 currently interacts with several operators and components:
 
 These components remain available in RHDH v1.7. However, instead of the Orchestrator Operator serving as a meta-operator managing RHDH and OSL installations, all deployment logic is integrated into the RHDH installation process.
 
-### Database Management
+
+## Upgrading with RHDH Helm Chart (One PostgreSQL Instance)
+
+**Prerequisites**: Familiarize yourself with [deploying RHDH via Helm Chart](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/installing_red_hat_developer_hub_on_openshift_container_platform/assembly-install-rhdh-ocp-helm).
+
+### Background: Database Management
 
 RHDH supports two database management options:
 
@@ -25,18 +30,6 @@ RHDH supports two database management options:
 2. **External database**: A PostgreSQL instance that is managed separately, and its connection configuration is known to the admin.
 
 We will present different upgrade options that include these two Database Management options.
-
-## Upgrading with RHDH Helm Chart (One PostgreSQL Instance)
-
-**Prerequisites**: Familiarize yourself with [deploying RHDH via Helm Chart](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/installing_red_hat_developer_hub_on_openshift_container_platform/assembly-install-rhdh-ocp-helm).
-
-This upgrade method involves the following steps:
-
-1. **Prepare for installation**
-2. **Configure external database connection** to use a single PostgreSQL instance for both RHDH and SonataFlow
-3. **Install RHDH v1.7** via the RHDH Helm Chart
-4. **Migrate SonataFlow resources** from the `sonataflow-infra` namespace (or your custom namespace) to the RHDH installation namespace
-5. **Migrate workflow deployments** (SonataFlow CRs) to the new namespace
 
 ### Steps
 
@@ -57,7 +50,7 @@ orchestrator:
   serverlessLogicOperator:
     enabled: true
   serverlessOperator:
-    enabled: true
+    enabled: true # optional
 ```
 
 - Include the extra values issued by the external-db installation doc from the former point.
@@ -70,12 +63,6 @@ The Helm installation will create a new SonataFlow Platform in the same namespac
 
 In this upgrade scenario we will create a new PostgreSQL instance for RHDH to use, while keeping intact all resources in the sonataflow-infra. After installation, we will reconfigure the Orchestrator plugins to point to the old previously used PostgreSQL instance.
 
-This upgrade method involves the following steps:
-
-1. **Prepare for installation**
-2. **Install RHDH v1.7** via the RHDH Helm Chart _without_ OpenShift Serverless and OpenShift Serverless Logic
-3. **Update Orchestrator Plugins**
-4. **Post Install Configurations**
 
 ### Steps
 
@@ -154,12 +141,6 @@ Using the RHDH Operator, we will not be reinstalling all SonataFlow resources, r
 
 We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the _orchestrator plugin dependency disabled_. This will make the installation skip creating new SonataFlow resources.
 
-This upgrade method involves the following steps:
-
-1. **Prepare for installation**
-2. **Install RHDH v1.7** via the RHDH Operator
-3. **Update Orchestrator Plugins**
-
 ### Steps
 
 1. **Prepare for installation**:
@@ -172,11 +153,12 @@ Please follow the instructions to install RHDH v1.7 with orchestrator enabled, s
 
 As for RHDH 1.7 all of the Orchestrator plugins are included in the default dynamic-plugins.yaml file of install-dynamic-plugins container but disabled by default. To enable the orchestrator plugin, you should refer the dynamic plugins ConfigMap with following data in your Backstage Custom Resource (CR) and put "false" under the "disabled" level.
 
-Please note to *not* include the dependencies for the orchestrator plugin:
+Please note to _not_ include the dependencies for the orchestrator plugin:
+
 ```yaml
-        # Do NOT add this
-         dependencies:
-            - ref: sonataflow
+# Do NOT add this
+dependencies:
+  - ref: sonataflow
 ```
 
 Adding the dependencies will trigger the new installation of Sonataflow resources. On this upgrade scenario, we would like to reuse our old sonataflow resources.
@@ -195,7 +177,7 @@ pluginConfig:
 
 Replace "sonataflow-infra" with whatever namespace you have previously installed your workflows and sonataflow resources in.
 
-The plugins that require this configuration are the "backstage-plugin-scaffolder-backend-module-orchestrator-dynamic" and the "backstage-plugin-orchestrator-backend-dynamic". 
+The plugins that require this configuration are the "backstage-plugin-scaffolder-backend-module-orchestrator-dynamic" and the "backstage-plugin-orchestrator-backend-dynamic".
 
 4. **Post Install Configurations**
    Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
