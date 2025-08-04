@@ -73,8 +73,7 @@ Pointers to the repositories:
 <details>
 <summary><strong>Q: What is a workflow? Is it just an app exposing a REST API?</strong></summary>
 
-**A:**
-In **SonataFlow**, a workflow is a **declarative description of a sequence of steps**—also called states—used to orchestrate services, functions, and logic. These workflows are defined in YAML or JSON following the **Serverless Workflow Specification.**
+**A:** In **SonataFlow**, a workflow is a **declarative description of a sequence of steps**—also called states—used to orchestrate services, functions, and logic. These workflows are defined in YAML or JSON following the **Serverless Workflow Specification.**
 
 Technically, when deployed (e.g., using Quarkus in SonataFlow), the workflow is exposed as a REST endpoint. But:
 
@@ -174,9 +173,7 @@ curl -s -X POST 'http://data-index-sonataflow-infra.apps.example.lab.eng.tlv2.re
 <details>
 <summary><strong>Q: What UI widgets can I use? How do I populate the User/Owner in the widget?</strong></summary>
 
-**A:**
-
-The documentation for this are here
+**A:** The documentation for this are here
 https://github.com/redhat-developer/rhdh-plugins/blob/main/workspaces/orchestrator/docs/orchestratorFormWidgets.md
 
 It is an additional plugin that serves that extensible UI capabilities (part of the Orchestrator).
@@ -226,15 +223,14 @@ This is a useful tool for evaluating the expressions: https://try.jsonata.org/
 <details>
 <summary><strong>Q: What is a good way to verify OpenAPI specs and workflows?</strong></summary>
 
-**A:** What I do is running locally, test it and solve the errors as they come, if any comes. AFAIK, there is no sandbox to test OpenAPI specs with workflow.
+**A:** Usually we suggest running locally, testing it by solving the errors as they come, if any comes. There is no sandbox to test OpenAPI specs with workflow.
 
 </details>
 
 <details>
 <summary><strong>Q: How can I add Quarkus extensions to workflows?</strong></summary>
 
-**A:**
-When running the workflow locally using maven, the extensions are added to pom.xml (either directly or by quarkus ext add).
+**A:** When running the workflow locally using maven, the extensions are added to pom.xml (either directly or by quarkus ext add).
 When workflow is built in the workflow, the QUARKUS_EXTENSIONS env var is used to add additional dependencies for the build process.
 
 e.g.
@@ -245,8 +241,7 @@ QUARKUS_EXTENSIONS="io.quarkus:quarkus-agroal,io.quarkus:quarkus-jdbc-mysql" ~/p
 <details>
 <summary><strong>Q: How can I tell in the workflow which OpenAPI Spec should use which Rest Client?</strong></summary>
 
-**A:**
-See https://sonataflow.org/serverlessworkflow/latest/service-orchestration/orchestration-of-openapi-based-services.html#proc-configuring-openapi-service-endpoint-url
+**A:** See https://sonataflow.org/serverlessworkflow/latest/service-orchestration/orchestration-of-openapi-based-services.html#proc-configuring-openapi-service-endpoint-url
 
 To configure the endpoints, you must use the sanitized OpenAPI specification file name as the REST client configuration key. The configuration key must be set as a valid environment variable.
 For example, a file named as subtraction.yaml contains the configuration key as subtraction_yaml.
@@ -263,8 +258,7 @@ In the application.properties we match between the spec file to the URL of the s
 <details>
 <summary><strong>Q: How do we properly uninstall a workflow?</strong></summary>
 
-**A:**
-In SonataFlow, clean up of workflows and their runs is done via the DB, to preserve auditing information. Therefore, even removal of workflows resources (SonataFlow CR, CM, secrets) from the cluster will not influence their appearances in DI.
+**A:** In SonataFlow, clean up of workflows and their runs is done via the DB, to preserve auditing information. Therefore, even removal of workflows resources (SonataFlow CR, CM, secrets) from the cluster will not influence their appearances in DI.
 This information is required for auditing purposes, e.g. maintaining the history of workflow runs.
 
 In orchestrator 1.6 the workflow will be shown as unavailable.
@@ -275,8 +269,7 @@ In orchestrator 1.7 deleted workflows will be filtered from the UI - tracked by 
 <details>
 <summary><strong>Q: How do you pass credentials to functions which are defined as OpenAPI spec?</strong></summary>
 
-**A:**
-The workflow is using a token which is defined on RHDH.
+**A:** The workflow is using a token which is defined on RHDH.
 This is supported by https://backstage.io/docs/auth/service-to-service-auth/#access-restrictions
 
 In RHDH configmap there is the same section:
@@ -317,8 +310,7 @@ https://github.com/rhdhorchestrator/orchestrator-demo/blob/main/scripts/build.sh
 <details>
 <summary><strong>Q: Can we use the Quarkus extension for building workflow images or does the build.sh script more stuff then just building the image in the standard way?</strong></summary>
 
-**A:**
-The build.sh script isn't a must. It offers an opinionated method to build workflows with specific Quarkus extensions that are recommended for production and enables the persistence.
+**A:** The build.sh script isn't a must. It offers an opinionated method to build workflows with specific Quarkus extensions that are recommended for production and enables the persistence.
 
 The core part of building workflow is using the openshift-serverless-logic builder image as referenced from https://github.com/rhdhorchestrator/orchestrator-demo/blob/main/docker/osl.Dockerfile#L4
 
@@ -360,8 +352,7 @@ If there is a need to patch a resource after it was generated by the script, con
 <details>
 <summary><strong>Q: How to add custom Java code / classes?</strong></summary>
 
-**A:**
-Follow this example:
+**A:** Follow this example:
 https://sonataflow.org/serverlessworkflow/main/core/custom-functions-support.html#con-func-java
 
 The class needs to be defined with a full qualifier (have a package defined that matches the one referenced from the workflow as well).
@@ -375,7 +366,7 @@ In addition, the class needs to be annotated with @ApplicationScoped or @Depende
 **A:** Here is an example for running a software template from a workflow:
 https://github.com/rhdhorchestrator/orchestrator-demo/blob/main/05_software_template_hello_world/workflow/src/main/resources/workflow.sw.yaml
 
-This is the scaffolder OpenAPI spec (created manually, there isn't an official version to my knowledge):
+This is the scaffolder OpenAPI spec:
 https://github.com/rhdhorchestrator/orchestrator-demo/blob/main/05_software_template_hello_world/workflow/src/main/resources/specs/scaffolder-openapi.yaml
 
 Please note that the argument for the software templates aren't part of the API and should be provided as arguments according to the software template definition, e.g.
@@ -390,9 +381,7 @@ The input values will have to be defined in the input schema of the workflow (un
 <details>
 <summary><strong>Q: How to most easily implement prod DB approval process?</strong></summary>
 
-**A:**
-
-Here is Example Scaffolding Template which generates 2 git repos - source code and \*-gitops for kubernetes manifests - Red Hat Best Practice: https://github.com/idp-team/software-templates/tree/master/scaffolder-templates/quarkus-web-template
+**A:** Here is Example Scaffolding Template which generates 2 git repos - source code and \*-gitops for kubernetes manifests - Red Hat Best Practice: https://github.com/idp-team/software-templates/tree/master/scaffolder-templates/quarkus-web-template
 
 </details>
 
@@ -400,7 +389,6 @@ Here is Example Scaffolding Template which generates 2 git repos - source code a
 <summary><strong>Q: How to implement custom logic for DB capability?</strong></summary>
 
 **A:** Java Module or Connectors with Camel K.
-
 </details>
 
 <details>
@@ -409,8 +397,7 @@ Here is Example Scaffolding Template which generates 2 git repos - source code a
 **Extended Q**:
 When we implement our own workflow like in this example https://github.com/rhdhorchestrator/serverless-workflows/tree/main/workflows/experimentals/cluster-onboarding, how do we build and deploy such a workflow? Is there no JSON/YAML workflow specification involved when we write the workflow as code? Could we add a workflow spec and run other steps or would we install the code workflow and call it from another YAML workflow?
 
-**A:**
-A better reference for learning about the build and deploy resource would be this repository:
+**A:** A better reference for learning about the build and deploy resource would be this repository:
 https://github.com/rhdhorchestrator/orchestrator-demo/
 
 For instance, this example: https://github.com/rhdhorchestrator/orchestrator-demo/tree/main/02_advanced#building-the-workflow explains how to use a script for building the workflow, generate its manifests and deploy to the cluster.
@@ -444,9 +431,7 @@ The kn-workflow create uses the flat layout, in which there are only workflow re
 <details>
 <summary><strong>Q: What local test setup do you recommend?</strong></summary>
 
-**A:**
-For testing the interaction between workflows and RHDH there are few options:
-
+**A:** For testing the interaction between workflows and RHDH there are few options:
 1. Use [rhdh-local](https://github.com/redhat-developer/rhdh-local). This setup runs RHDH locally in its container and SonataFlow on its own container that points to local development environment.
 
 2. Use orchestrator plugins development env from stable branch, e.g.: https://github.com/redhat-developer/rhdh-plugins/tree/orchestrator-1.6/workspaces/orchestrator#run-locally-from-this-repo
@@ -493,24 +478,21 @@ What then happens (in the background, through the Operator):
 <summary><strong>Q: How do I implement my own logic, with Quarkus Apps or can I use my own images?</strong></summary>
 
 **A:**
-
 1. The general workflow logic should be described in YAML - then you can also view it in the Orchestrator, for example (or visualize it with other tools).
-2. In your image, I can do whatever I want.
+2. In your image, you can do whatever you want.
    Here are a few examples: https://github.com/rhdhorchestrator/serverless-workflows/tree/main/workflows/experimentals
 
-If I don't want to leave it to the Operator which image it uses for building and for runtime, then there is a blog post with explanations and links to scripts, etc. - these **build everything together** and with that I then have full control and can also build my own functions, which I then call from my YAML flow: https://www.rhdhorchestrator.io/blog/building-and-deploying-workflows/
+If you don't want to leave it to the Operator which image it uses for building and for runtime, then there is a blog post with explanations and links to scripts, etc. - these **build everything together** and with that you then have full control and can also build your own functions, which you then call from your YAML flow: https://www.rhdhorchestrator.io/blog/building-and-deploying-workflows/
 
-Note - of course, I can also build the entire logic as an application and pack it into my image and then just call "magic_kicks_in_here" from my flow, but then that's no longer a workflow - the boundaries are fluid, but you should ideally not put logic into your code, but only functions: https://www.rhdhorchestrator.io/1.6/docs/
+Note - of course, you can also build the entire logic as an application and pack it into your image and then just call "magic_kicks_in_here" from your flow, but then that's no longer a workflow - the boundaries are fluid, but you should ideally not put logic into your code, but only functions: https://www.rhdhorchestrator.io/1.6/docs/
 
 </details>
 
 <details>
 <summary><strong>Q: How to integrate own CustomActions?</strong></summary>
 
-**A:**
-Since RHDH is not rebuilt, I cannot make any code changes, just like custom plugins, as dynamic plugins.
-
-I suspect your question aims at creating resources for which there is no template action yet - in that case, I would rather go the way of a workflow in the Orchestrator, which I can address via a template action
+**A:** Since RHDH is not rebuilt, we cannot make any code changes, just like custom plugins, as dynamic plugins.
+The question aims at creating resources for which there is no template action yet - in that case, you would rather go the way of a workflow in the Orchestrator, which you can address via a template action.
 
 For example: (-> steps)
 
@@ -543,9 +525,7 @@ If there is a backend plugin and exposed API - the workflow should be able to ca
 <details>
 <summary><strong>Q: How to use the Notification Plugin?</strong></summary>
 
-**A:**
-There is a need to enable also the backstage-plugin-notifications-backend-module-email-dynamic plugin.
-
+**A:** There is a need to enable also the backstage-plugin-notifications-backend-module-email-dynamic plugin.
 See more details about the email plugin here:
 https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/dynamic_plugins_reference/con-preinstalled-dynamic-plugins#rhdh-tech-preview-plugins
 
@@ -567,6 +547,7 @@ See https://backstage.io/docs/features/software-catalog/descriptor-format/#kind-
 For calling subflows from the main workflow, all subflows need to be built into the same image of the calling workflow.
 
 Subflows aren't shown in the Data Index, therefore not shown in the Orchestrator plugin.
+Please take a look [here](https://github.com/wmedvede/serverless-workflow-operator-subflows) for a more detailed example on subflows.
 
 </details>
 
@@ -576,7 +557,7 @@ Subflows aren't shown in the Data Index, therefore not shown in the Orchestrator
 **Extended Q:**
 How are workflowA and workflowB started in the subflow example https://github.com/apache/incubator-kie-kogito-examples/blob/main/serverless-workflow-examples/serverless-workflow-subflows-event/src/main/resources/master.sw.json ?
 
-In the master workflow I only see two states: "setup" and "waitForEvents". Wait for events implies that we only wait for something. So where are workflowA and workflowB started?
+In the master workflow, there are only two states: "setup" and "waitForEvents". 'Wait for events' implies that we only wait for something. So where are workflowA and workflowB started?
 
 How are events related to subworkflows? Are events required? Is the call to setup synchronous?
 
@@ -596,7 +577,9 @@ Until both events are received, the workflow will be waiting for the remaining e
 The kn-workflow gen-manifest (the CLI to generate the manifests) expects only one sw.yaml or sw.json file.
 If there is more than a single file, the CLI will fail with:
 
+```bash
 ❌ ERROR: generating manifests: ❌ ERROR: multiple SonataFlow definition files found
+```
 
 The reason for that is that the main workflow is translated into a SonataFlow CR that represents a single workflow.
 
