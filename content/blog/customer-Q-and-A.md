@@ -30,8 +30,8 @@ This document will serve as the Orchestrator's Q&A collection. Customer submitte
 <details>
 <summary><strong>Q: How mature is the solution Orchestrator? Is it still cutting edge technology or already used by other customers?</strong></summary>
 
-**A:** The orchestrator was GAed in RHDH 1.5. The current version is 1.6 and it will be merged into RHDH in 1.7. At this point we will have one unified operator which supports RHDH and the Orchestrator facilities.
-There are other customers using the orchestrator in production - even on a large scale with multiple thousands of users and others are onboarding to it currently.
+**A:** The Orchestrator was GAed in RHDH 1.5. The current version is 1.6 and it will be merged into RHDH in 1.7. At this point we will have one unified operator which supports RHDH and the Orchestrator facilities.
+There are other customers using the Orchestrator in production - even on a large scale with multiple thousands of users and others are onboarding to it currently.
 
 </details>
 
@@ -73,8 +73,9 @@ It can be written in YAML or JSON format. Then the build process using sonataflo
 The development tools for the workflow are mentioned in their getting started: https://sonataflow.org/serverlessworkflow/main/getting-started/getting-familiar-with-our-tooling.html
 
 Another option is to use Quarkus cli or mvn quarkus:dev
-For writing the workflows there is a VSCode extension that offers code completion and render of the diagram.
-For workflows that relies on extended features of the orchestrator, such as the form-widgets, it is preferred to use the rhdh-local or local backstage with Quarkus.
+
+For writing the workflows there is a [VSCode extension](https://marketplace.visualstudio.com/items?itemName=kie-group.swf-vscode-extension) that offers code completion and render of the diagram.
+For workflows that relies on extended Orchestrator features, such as the form-widgets, it is preferred to use the [rhdh-local](https://github.com/redhat-developer/rhdh-local) or local backstage with Quarkus.
 
 Containers which include the workflow can then be built and deployed using the GitOps profile: https://sonataflow.org/serverlessworkflow/main/cloud/operator/deployment-profile.html
 
@@ -147,7 +148,7 @@ Pointers to the repositories:
 
 1. Use [rhdh-local](https://github.com/redhat-developer/rhdh-local). This setup runs RHDH locally in its container and SonataFlow on its own container that points to local development environment.
 
-2. Use orchestrator plugins development env from stable branch, e.g.: https://github.com/redhat-developer/rhdh-plugins/tree/orchestrator-1.6/workspaces/orchestrator#run-locally-from-this-repo
+2. Use Orchestrator plugins development env from stable branch, e.g.: https://github.com/redhat-developer/rhdh-plugins/tree/orchestrator-1.6/workspaces/orchestrator#run-locally-from-this-repo
    This also runs SonataFlow locally: https://github.com/redhat-developer/rhdh-plugins/tree/orchestrator-1.6/workspaces/orchestrator#devmode-local-configuration
 
 </details>
@@ -308,7 +309,7 @@ There is no need to write a code other than:
 
 - The workflow definition (yaml / json)
 - The data input schema (json)
-- The data output schema (json) - common for all workflows in the context of the orchestrator
+- The data output schema (json) - common for all workflows in the context of the Orchestrator
 - The application.properties - for configuration
 - The secret.properties - for sensitive information
 - The required spec files for interacting with the external services
@@ -322,17 +323,17 @@ https://www.rhdhorchestrator.io/blog/hacking-build-process/ - for using the buil
 <details>
 <summary><strong>Q: How can I build a workflow in the Orchestrator?</strong></summary>
 
-**A:** The Orchestrator is built on OpenShift Serverless and SonataFlow / Kogito. The orchestrator "hooks" into the SonataFlow platform and can display, start, and show the output of workflows. Additionally, the Operator Plugin provides a custom action that can be used to start workflows.
+**A:** The Orchestrator is built on OpenShift Serverless and SonataFlow / Kogito. The Orchestrator "hooks" into the SonataFlow platform and can display, start, and show the output of workflows. Additionally, the operator Plugin provides a custom action that can be used to start workflows.
 
 **You cannot build workflows in the Orchestrator itself** - the idea behind it is that an RHDH user (typically a developer) wants to use these flows, e.g., to provision external resources or similar - or they implicitly **use them in the template** and can then view a status (by the way, the Orchestrator also supports the RHDH RBAC model, so I can ensure that, for example, only users/groups that can see certain templates can also see corresponding workflows, etc.)
 To do this, you need to know that such a workflow (completely container-native, of course) always runs in a pod, is accessible via a service, and receives its schemas, properties, etc., via configMaps, for example.
 
-In the **simplest case** (though not suitable for production), if the SonataFlow Operator (or OpenShift Serverless Logic Operator) is installed, you can simply create a SonataFlow Custom Resource. Example: https://kiegroup.github.io/kogito-docs/serverlessworkflow/latest/cloud/operator/build-and-deploy-workflows.html#build-deploy-workflow
+In the **simplest case** (though not suitable for production), if the SonataFlow operator (or OpenShift Serverless Logic Operator) is installed, you can simply create a SonataFlow Custom Resource. Example: https://kiegroup.github.io/kogito-docs/serverlessworkflow/latest/cloud/operator/build-and-deploy-workflows.html#build-deploy-workflow
 
 https://sonataflow.org/serverlessworkflow/main
 https://sonataflow.org/serverlessworkflow/main/cloud/operator/deployment-profile.html
 
-What then happens (in the background, through the Operator):
+What then happens (in the background, through the operator):
 
 - A build with a BuildConfig is started - the standard builder image and thus the standard runtime image can be adapted - by default these are maven/jdk and Quarkus images.
 - When the build is finished, the workflow is started and the corresponding service and even a route are created (the route, i.e., the expose, can be suppressed).
@@ -363,7 +364,7 @@ backend:
           subject: orchestrator
 ```
 
-The value for BACKEND_SECRET is taken from a secret of RHDH, e.g. backstage-backend-auth-secret (if installed by the orchestrator operator)
+The value for BACKEND_SECRET is taken from a secret of RHDH, e.g. backstage-backend-auth-secret (if installed by the Orchestrator operator)
 
 In the workflow, the secret is referenced from the application.properties property:
 
@@ -673,8 +674,8 @@ explicitly recommends GitOps approach (Deployment with GitOps): https://www.rhdh
 **A:** In SonataFlow, clean up of workflows and their runs is done via the DB, to preserve auditing information. Therefore, even removal of workflows resources (SonataFlow CR, CM, secrets) from the cluster will not influence their appearances in DI.
 This information is required for auditing purposes, e.g. maintaining the history of workflow runs.
 
-In orchestrator 1.6 the workflow will be shown as unavailable.
-In orchestrator 1.7 deleted workflows will be filtered from the UI - tracked by [this issue](https://issues.redhat.com/browse/FLPATH-2333).
+In Orchestrator 1.6 the workflow will be shown as unavailable.
+In Orchestrator 1.7 deleted workflows will be filtered from the UI - tracked by [this issue](https://issues.redhat.com/browse/FLPATH-2333).
 
 </details>
 
@@ -705,7 +706,7 @@ In addition, the class needs to be annotated with @ApplicationScoped or @Depende
 2. In your image, you can do whatever you want.
    Here are a few examples: https://github.com/rhdhorchestrator/serverless-workflows/tree/main/workflows/experimentals
 
-If you don't want to leave it to the Operator which image it uses for building and for runtime, then there is a blog post with explanations and links to scripts, etc. - these **build everything together** and with that you then have full control and can also build your own functions, which you then call from your YAML flow: https://www.rhdhorchestrator.io/blog/building-and-deploying-workflows/
+If you don't want to leave it to the operator which image it uses for building and for runtime, then there is a blog post with explanations and links to scripts, etc. - these **build everything together** and with that you then have full control and can also build your own functions, which you then call from your YAML flow: https://www.rhdhorchestrator.io/blog/building-and-deploying-workflows/
 
 Note - of course, you can also build the entire logic as an application and pack it into your image and then just call "magic_kicks_in_here" from your flow, but then that's no longer a workflow - the boundaries are fluid, but you should ideally not put logic into your code, but only functions: https://www.rhdhorchestrator.io/1.6/docs/
 
