@@ -14,12 +14,7 @@ This document provides solutions to common problems encountered with serverless 
 1. [HTTP Errors](#http-errors)
 2. [Workflow Errors](#workflow-errors)
 3. [Configuration Problems](#configuration-problems)
-4. [Performance Issues](#performance-issues)
-5. [Error Messages](#error-messages)
-6. [Network Problems](#network-problems)
-7. [Common Scenarios](#common-scenarios)
-8. [Contact Support](#contact-support)
-
+4. [Workflow not showing in RHDH UI](#workflow-not-showing-in-rhdh-ui)
 ---
 
 ## HTTP Errors
@@ -107,3 +102,56 @@ PostgreSQL namespace allow ingress from the Sonataflow services namespace
 (e.g., `sonataflow-infra`). Without appropriate ingress rules,
 network policies may prevent the `DataIndex` and `JobService` pods from
 connecting to the database.
+
+
+## Workflow not showing in RHDH UI
+
+### Problem: Workflows are not showing up the in the RHDH Orchestrator UI
+
+1. **Ensure the Orchestrator is trying to fetch the workflow**\
+In the logs of the RHDH pod, you should see logs message similar to
+```
+{"level":"\u001b[32minfo\u001b[39m","message":"fetchWorkflowInfos() called: http://sonataflow-platform-data-index-service.sonataflow-infra","plugin":"orchestrator","service":"backstage","span_id":"fca4ab29f0a7aef9","timestamp":"2025-08-04 17:58:26","trace_flags":"01","trace_id":"5408d4b06373ff8fb34769083ef771dd"}
+```
+Notice the `"plugin":"orchestrator"` that can help filtering the messages.
+
+2. **Ensure the Data Index properties are set in the managed-props ConfigMap of the workflow**\
+Make sure to have:
+```
+kogito.data-index.health-enabled = true
+kogito.data-index.url = http://sonataflow-platform-data-index-service.sonataflow-infra
+...
+mp.messaging.outgoing.kogito-processdefinitions-events.url = http://sonataflow-platform-data-index-service.sonataflow-infra/definitions
+mp.messaging.outgoing.kogito-processinstances-events.url = http://sonataflow-platform-data-index-service.sonataflow-infra/processes
+```
+Those should be set automatically by the OSL operator when the Data Index service is enabled. You should have simlilar properties for the Job Services.
+
+3. **Ensure the Workflow is registered in the Data Index**\
+To check that, you may connect to the database used by the Data Index and run the following from the PSQL instance's pod:
+```
+$ PGPASSWORD=<psql password> psql -h localhost -p 5432 -U < user> -d sonataflow
+
+sonataflow=# SET search_path TO "sonataflow-platform-data-index-service";
+sonataflow=# select id, name from definitions;
+
+```
+You should see the workflows registered to the Data Index
+
+4. **Ensure Data Index and Job Services are enabled**\
+If the Data Index and the Job Services are not enabled in the `SontaFlowPlatform` then the Orchestrator plugin cannot fetch the available workflows. 
+Make sure to have
+```
+services:
+    dataIndex:
+      enabled: true
+      ...
+    jobService:
+      enabled: true
+      ...
+``` 
+If not, manually edit the `SontaFlowPlatform` instance. This should trigger the re-creation of the workflow's related manifests. 
+
+You should now make sure the properties are correctly set in the `managed-props` ConfigMap of the workflow.
+
+5. **Ensure the RBAC permissions are set correctly**\
+See [RBAC documentation](../installation/rbac.md) for detailed permission configuration.
