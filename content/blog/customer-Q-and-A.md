@@ -1,6 +1,6 @@
 ---
 title: "Customer Q&A: Common Questions About Orchestrator"
-date: 2024-12-19
+date: 2025-08-06
 description: "Frequently asked questions and answers from our customer interactions about Orchestrator"
 tags: ["FAQ", "Customer Support", "Orchestrator", "Workflows", "Orchestrator-1.6"]
 categories: ["Documentation"]
@@ -552,9 +552,10 @@ This is a useful tool for evaluating the expressions: https://try.jsonata.org/
 <details>
 <summary><strong>Q: Is it possible to create modularized workflows and call these as a sub-workflow from another workflow?</strong></summary>
 
-**A:**
-The serverless workflow specification supports subflows - https://github.com/serverlessworkflow/specification/blob/0.8.x/specification.md#subflow-action
+**A:** The serverless workflow specification supports subflows - https://github.com/serverlessworkflow/specification/blob/0.8.x/specification.md#subflow-action. 
+
 Each workflow can include many sub-flows built into the same build image with the main workflow.
+
 The subflow are internal to the workflow and are not exposed as the main workflow. The definition itself can be shared between multiple workflows at build time, but at runtime the sub-flows aren't exposed.
 
 </details>
