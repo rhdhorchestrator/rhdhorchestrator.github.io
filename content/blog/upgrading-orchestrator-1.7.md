@@ -111,7 +111,7 @@ In this upgrade scenario we will create a new PostgreSQL instance for RHDH to us
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        name: allow-rhdh-to-sonataflow-and-workflows
+        name: allow-infra-ns-to-workflow-ns
         namespace: ${RHDH_INSTALL_NS}
       spec:
         podSelector: {}
@@ -133,6 +133,10 @@ In this upgrade scenario we will create a new PostgreSQL instance for RHDH to us
                 matchLabels:
                   # Allow traffic from pods in the Knative Serving namespace.
                   kubernetes.io/metadata.name: knative-serving
+            - namespaceSelector:
+                matchLabels:
+                  # Allow traffic from pods in the openshift serverless logic namespace.
+                  kubernetes.io/metadata.name: openshift-serverless-logic
       EOF
     ```
 
@@ -190,7 +194,7 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
       apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy
       metadata:
-        name: allow-rhdh-to-sonataflow-and-workflows
+        name: allow-infra-ns-to-workflow-ns
         namespace: ${RHDH_INSTALL_NS}
       spec:
         podSelector: {}
@@ -212,5 +216,9 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
                 matchLabels:
                   # Allow traffic from pods in the Knative Serving namespace.
                   kubernetes.io/metadata.name: knative-serving
+            - namespaceSelector:
+                matchLabels:
+                  # Allow traffic from pods in the openshift serverless logic namespace.
+                  kubernetes.io/metadata.name: openshift-serverless-logic
       EOF
     ```
