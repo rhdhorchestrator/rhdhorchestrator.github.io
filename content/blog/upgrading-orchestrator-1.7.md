@@ -6,6 +6,23 @@ Starting with Red Hat Developer Hub (RHDH) v1.7, Orchestrator will be shipped as
 
 From RHDH v1.7 onwards, Orchestrator will be shipped alongside RHDH as a plugin with all current capabilities. The components will be installed together, and Orchestrator will no longer have its own dedicated operator. For detailed information about this transition, see our [blog post about installing Orchestrator via RHDH Chart](https://www.rhdhorchestrator.io/blog/installing-orchestrator-via-rhdh-chart/).
 
+### Background: Database Management
+
+RHDH supports two database management options:
+
+-  **Local PostgreSQL instance**: A local PostgreSQL instance that gets installed by a [Helm Chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql)
+-  **External database**: A PostgreSQL instance that is managed separately, and its connection configuration is known to the admin.
+
+RHDH has built-in integration for using external databases, both for the [Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md) and the [operator](https://github.com/redhat-developer/rhdh-operator/blob/main/docs/external-db.md).
+
+In the following upgrade scenarios, we will try to avoid DB migration processes. We will provide solutions to reuse DB instances and connect them to new versions of the operator. 
+
+Note: Currently, there is no way to plug in a external DB instance for only the Sonataflow resources. When we say "external DB", we mean that the RHDH resources will use the external DB. We _can_ however allow the Sonataflow resources to use a seperate database in the RHDH's DB instance.
+
+### Background: RHDH Helm Chart
+
+The RHDH Helm Chart 
+
 ### Current Orchestrator Architecture
 
 Orchestrator v1.6 currently interacts with several operators and components:
@@ -18,22 +35,12 @@ Orchestrator v1.6 currently interacts with several operators and components:
 These components remain available in RHDH v1.7. However, instead of the Orchestrator Operator serving as a meta-operator managing RHDH and OSL installations, all deployment logic is integrated into the RHDH installation process.
 
 
-## Upgrading with RHDH Helm Chart (One PostgreSQL Instance)
+## Upgrading with RHDH Helm Chart (Reusing Original PostgreSQL Instance)
 
 **Prerequisites**: Familiarize yourself with [deploying RHDH via Helm Chart](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/installing_red_hat_developer_hub_on_openshift_container_platform/assembly-install-rhdh-ocp-helm).
 
-### Background: Database Management
+In this upgrade scenario, we will reuse the PostgreSQL instance that was used for Orchestrator operator, and will treat it as an external DB for the new RHDH installation. No DB migration will be needed, as only a new database will be created in the same instance.
 
-RHDH supports two database management options:
-
--  **Local PostgreSQL instance**: A local PostgreSQL instance that gets installed by a [Helm Chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql)
--  **External database**: A PostgreSQL instance that is managed separately, and its connection configuration is known to the admin.
-
-RHDH has built-in integration for using external databases, both for the [Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md) and the [operator](https://github.com/redhat-developer/rhdh-operator/blob/main/docs/external-db.md).
-
-Currrently, there is no way to plug in a external DB instance for only the Sonataflow resources. When we say "external DB", we mean that the RHDH resources will use the external DB. We _can_ however allow the Sonataflow resources to use a seperate database in the RHDH's DB instance.
-
-We will present different upgrade options that include these two Database Management options.
 
 ### Steps
 
@@ -63,9 +70,9 @@ We will present different upgrade options that include these two Database Manage
 
 4. **Migrate workflows**: After installation, migrate any existing workflow deployments (SonataFlow CRs) to the RHDH namespace.
 
-## Upgrading with RHDH Helm Chart (Two PostgreSQL Instances)
+## Upgrading with RHDH Helm Chart (Creating a new PostgreSQL instance for RHDH)
 
-In this upgrade scenario we will create a new PostgreSQL instance for RHDH to use, while keeping intact all resources in the sonataflow-infra. After installation, we will reconfigure the Orchestrator plugins to point to the old previously used PostgreSQL instance.
+In this upgrade scenario we will create a new PostgreSQL instance for RHDH to use, while keeping intact all resources in the sonataflow-infra namespace, including the PostgreSQL instance used by Orchestrator operator. After installation, we will reconfigure the Orchestrator plugins to point to the old previously used PostgreSQL instance.
 
 
 ### Steps
@@ -112,7 +119,7 @@ In this upgrade scenario we will create a new PostgreSQL instance for RHDH to us
       kind: NetworkPolicy
       metadata:
         name: allow-infra-ns-to-workflow-ns
-        namespace: ${RHDH_INSTALL_NS}
+        namespace: sonataflow-infra
       spec:
         podSelector: {}
         ingress:
@@ -195,7 +202,7 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
       kind: NetworkPolicy
       metadata:
         name: allow-infra-ns-to-workflow-ns
-        namespace: ${RHDH_INSTALL_NS}
+        namespace: sonataflow-infra
       spec:
         podSelector: {}
         ingress:
