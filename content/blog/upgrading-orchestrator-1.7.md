@@ -17,11 +17,7 @@ RHDH has built-in integration for using external databases, both for the [Chart]
 
 In the following upgrade scenarios, we will try to avoid DB migration processes. We will provide solutions to reuse DB instances and connect them to new versions of the operator. 
 
-Note: Currently, there is no way to plug in a external DB instance for only the Sonataflow resources. When we say "external DB", we mean that the RHDH resources will use the external DB. We _can_ however allow the Sonataflow resources to use a seperate database in the RHDH's DB instance.
-
-### Background: RHDH Helm Chart
-
-The RHDH Helm Chart 
+**Note**: Currently, there is no way to plug in an external DB instance for only the Sonataflow resources. When we say "external DB," we mean that the RHDH deployment will use a database that it did not create or provision itself. While you cannot use an external DB for only Sonataflow, you can allow Sonataflow resources to use a separate database within RHDH's primary DB instance.
 
 ### Current Orchestrator Architecture
 
@@ -49,9 +45,9 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
     - Delete the Orchestrator CR and the Backstage CR that was previously used in v1.6
     - Disable or delete your existing SonataFlow Platform.
 
-2. **Configure external database connection** following the [RHDH external database documentation](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md). Create a secret containing PostgreSQL connection properties. This guide will also have additional values for the Helm Chart, that will be used in the next step.
+2. **Configure external database connection**: following the [RHDH external database documentation](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md). Create a secret containing PostgreSQL connection properties. This guide will also have additional values for the Helm Chart, that will be used in the next step.
 
-3. **Install RHDH v1.7 with Orchestrator** using the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/backstage), following the external database configuration guide. Make sure to include the following in the values.yaml:
+3. **Install RHDH v1.7 with Orchestrator**: using the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/backstage), following the external database configuration guide. Make sure to include the following in the values.yaml:
     
     - Make sure to have "orchestrator" and "serverlessLogicOperator" enabled.
 
@@ -81,7 +77,7 @@ In this upgrade scenario we will create a new PostgreSQL instance for RHDH to us
 
     - Delete the Orchestrator CR and the Backstage CR that was previously used in v1.6
 
-2. **Install RHDH v1.7 and Configure Orchestrator Plugin** using the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/backstage).
+2. **Install RHDH v1.7 and Configure Orchestrator Plugin**: using the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/backstage).
    Make sure to include the following in the values.yaml:
 
     - Make sure to have "orchestrator" enabled and "serverlessLogicOperator" disabled.
@@ -110,7 +106,7 @@ In this upgrade scenario we will create a new PostgreSQL instance for RHDH to us
 
     Finally, Helm Install the Chart.
 
-3. **Post Install Configurations**
+3. **Post Install Configurations**:
    Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
 
     ```console
@@ -177,7 +173,7 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
 
     Adding the dependencies will trigger the new installation of Sonataflow resources. On this upgrade scenario, we would like to reuse our old sonataflow resources.
 
-3. **Update Orchestrator Plugins**
+3. **Update Orchestrator Plugins**:
     The `backstage-plugin-scaffolder-backend-module-orchestrator-dynamic` and the `backstage-plugin-orchestrator-backend-dynamic` plugins require extra configurations that include the URL for the SonataFlow Data Index.
 
     Edit the values.yaml in the appropriate places to use the namespace that holds SonataFlow resources.
@@ -193,7 +189,7 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
 
     The plugins that require this configuration are the "backstage-plugin-scaffolder-backend-module-orchestrator-dynamic" and the "backstage-plugin-orchestrator-backend-dynamic".
 
-4. **Post Install Configurations**
+4. **Post Install Configurations**:
     Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
 
     ```console
