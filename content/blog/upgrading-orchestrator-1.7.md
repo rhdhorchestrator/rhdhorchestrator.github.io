@@ -10,8 +10,20 @@ From RHDH v1.7 onwards, Orchestrator will be shipped alongside RHDH as a plugin 
 
 RHDH supports two database management options:
 
--  **Local PostgreSQL instance**: A local PostgreSQL instance that gets installed by a [Helm Chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql)
--  **External database**: A PostgreSQL instance that is managed separately, and its connection configuration is known to the admin.
+### PostgreSQL Database Management in RHDH
+
+The RHDH platform requires a PostgreSQL database. How this database is provisioned depends on whether you are installing via the **RHDH Operator** or the **RHDH Helm Chart**:
+
+- **Local PostgreSQL instance (Operator-managed)**:  
+  When installing with the [RHDH Operator](https://github.com/redhat-developer/rhdh-operator), a local PostgreSQL database is created and managed directly by the operator.  
+  This does **not** use the Bitnami Helm Chart. Instead, the operator provisions and controls Kubernetes resources such as `StatefulSet`, `Service`, and `PersistentVolumeClaim` to run PostgreSQL natively.  
+  You can see the database definition in the operator’s [db-statefulset.yaml](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/config/profile/rhdh/default-config/db-statefulset.yaml).
+
+- **Local PostgreSQL instance (Chart-managed)**:  
+  When installing with the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-operator/tree/main/chart), a local PostgreSQL instance is deployed via the [Bitnami PostgreSQL Helm Chart](https://github.com/bitnami/charts/tree/main/bitnami/postgresql).  
+  In this case, lifecycle management (upgrades, resource handling, etc.) is handled through the chart.
+
+-  **External database**: A PostgreSQL instance that is managed separately, and its connection configuration is known to the admin. This is the [recommended](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.7/html/configuring_red_hat_developer_hub/configuring-external-postgresql-databases) setup in production.
 
 RHDH has built-in integration for using external databases, both for the [Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md) and the [operator](https://github.com/redhat-developer/rhdh-operator/blob/main/docs/external-db.md).
 
@@ -33,7 +45,7 @@ These components remain available in RHDH v1.7. However, instead of the Orchestr
 
 ## Upgrading with RHDH Helm Chart (Reusing Original PostgreSQL Instance)
 
-**Prerequisites**: Familiarize yourself with [deploying RHDH via Helm Chart](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/installing_red_hat_developer_hub_on_openshift_container_platform/assembly-install-rhdh-ocp-helm).
+**Prerequisites**: Familiarize yourself with [deploying RHDH via Helm Chart](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.7/html/installing_red_hat_developer_hub_on_openshift_container_platform/assembly-install-rhdh-ocp-helm).
 
 In this upgrade scenario, we will reuse the PostgreSQL instance that was used for Orchestrator operator, and will treat it as an external DB for the new RHDH installation. No DB migration will be needed, as only a new database will be created in the same instance.
 
@@ -106,42 +118,42 @@ In this upgrade scenario we will create a new PostgreSQL instance for RHDH to us
 
     Finally, Helm Install the Chart.
 
-3. **Post Install Configurations**:
+3. **Post Install Configurations**:  
    Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
 
-    ```console
-      oc create -f - <<EOF
-      apiVersion: networking.k8s.io/v1
-      kind: NetworkPolicy
-      metadata:
-        name: allow-infra-ns-to-workflow-ns
-        namespace: sonataflow-infra
-      spec:
-        podSelector: {}
-        ingress:
-          - from:
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the RHDH namespace.
-                  kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the Workflow namespace.
-                  kubernetes.io/metadata.name: ${WORKFLOW_NS}
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the Knative Eventing namespace.
-                  kubernetes.io/metadata.name: knative-eventing
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the Knative Serving namespace.
-                  kubernetes.io/metadata.name: knative-serving
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the openshift serverless logic namespace.
-                  kubernetes.io/metadata.name: openshift-serverless-logic
-      EOF
-    ```
+   ```console
+   oc create -f - <<EOF
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: allow-infra-ns-to-workflow-ns
+     namespace: sonataflow-infra
+   spec:
+     podSelector: {}
+     ingress:
+       - from:
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the RHDH namespace.
+               kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Workflow namespace.
+               kubernetes.io/metadata.name: ${WORKFLOW_NS}
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Eventing namespace.
+               kubernetes.io/metadata.name: knative-eventing
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Serving namespace.
+               kubernetes.io/metadata.name: knative-serving
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the openshift serverless logic namespace.
+               kubernetes.io/metadata.name: openshift-serverless-logic
+   EOF
+
 
 ## Upgrading with RHDH Operator
 
@@ -161,7 +173,7 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
 
     Please follow the instructions to install RHDH v1.7 with orchestrator enabled, see the [README](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/docs/orchestrator.md).
 
-    As for RHDH 1.7 all of the Orchestrator plugins are included in the default dynamic-plugins.yaml file of install-dynamic-plugins container but disabled by default. To enable the orchestrator plugin, you should refer the dynamic plugins ConfigMap with following data in your Backstage Custom Resource (CR) and put "false" under the "disabled" level.
+    As of RHDH 1.7 all of the Orchestrator plugins are included in the default dynamic-plugins.yaml file of install-dynamic-plugins container but disabled by default. To enable the orchestrator plugin, you should refer the dynamic plugins ConfigMap with following data in your Backstage Custom Resource (CR) and put "false" under the "disabled" level.
 
     Please note to _not_ include the dependencies for the orchestrator plugin:
 
@@ -189,39 +201,38 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
 
     The plugins that require this configuration are the "backstage-plugin-scaffolder-backend-module-orchestrator-dynamic" and the "backstage-plugin-orchestrator-backend-dynamic".
 
-4. **Post Install Configurations**:
-    Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
+4. **Post Install Configurations**:  
+   Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
 
-    ```console
-      oc create -f - <<EOF
-      apiVersion: networking.k8s.io/v1
-      kind: NetworkPolicy
-      metadata:
-        name: allow-infra-ns-to-workflow-ns
-        namespace: sonataflow-infra
-      spec:
-        podSelector: {}
-        ingress:
-          - from:
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the RHDH namespace.
-                  kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the Workflow namespace.
-                  kubernetes.io/metadata.name: ${WORKFLOW_NS}
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the Knative Eventing namespace.
-                  kubernetes.io/metadata.name: knative-eventing
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the Knative Serving namespace.
-                  kubernetes.io/metadata.name: knative-serving
-            - namespaceSelector:
-                matchLabels:
-                  # Allow traffic from pods in the openshift serverless logic namespace.
-                  kubernetes.io/metadata.name: openshift-serverless-logic
-      EOF
-    ```
+   ```console
+   oc create -f - <<EOF
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: allow-infra-ns-to-workflow-ns
+     namespace: sonataflow-infra
+   spec:
+     podSelector: {}
+     ingress:
+       - from:
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the RHDH namespace.
+               kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Workflow namespace.
+               kubernetes.io/metadata.name: ${WORKFLOW_NS}
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Eventing namespace.
+               kubernetes.io/metadata.name: knative-eventing
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Serving namespace.
+               kubernetes.io/metadata.name: knative-serving
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the openshift serverless logic namespace.
+               kubernetes.io/metadata.name: openshift-serverless-logic
+   EOF
