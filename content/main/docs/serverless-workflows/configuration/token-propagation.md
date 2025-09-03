@@ -20,7 +20,16 @@ When building the workflow's image, you will need to make sure the following ext
 See https://github.com/rhdhorchestrator/orchestrator-demo/blob/main/scripts/build.sh#L180 to see how we do it.
 
 # Configuration
-## Oauth2
+## Openshift Serverless Logic (OSL) / SonataFlow related
+By default, the workflow is not persisting the request headers in the database. Therefore, any token in the header will be lost if the workflow flushes its context (e.g: sleeps, goes idle, is resumed, ...) as the headers will not be restored to the context from the database.
+
+By setting the property `kogito.persistence.headers.enabled` to `true` in the `application.properties` file or in the config map representing it on the cluster, the workflow will persist the headers. This will enable the workflow to keep using the token from the headers even after it was interupted and restored.
+
+
+You can exclude headers from being persisted using `kogito.persistence.headers.excluded`. See https://sonataflow.org/serverlessworkflow/main/core/configuration-properties.html and/or https://sonataflow.org/serverlessworkflow/main/use-cases/advanced-developer-use-cases/persistence/persistence-with-postgresql.html#ref-postgresql-persistence-configuration for more information. 
+
+## Security related
+### Oauth2
 1. In the OpenAPI spec file(s) where you want to propagate the incoming token, define the security scheme used by the endpoints you’re interested in. All endpoints may use the same security scheme if configured globally.
 e.g
 ```
@@ -71,7 +80,7 @@ See https://sonataflow.org/serverlessworkflow/latest/security/authention-support
 
 Setting the `quarkus.oidc.*` properties will enforce the token validity check against the OIDC provider. Once successful, you will be able to use `$WORKFLOW.identity` in the workflow definition in order to get the identity of the user. See https://quarkus.io/guides/security-oidc-bearer-token-authentication and https://quarkus.io/guides/security-oidc-bearer-token-authentication-tutorial for more information.
 
-## Bearer token
+### Bearer token
 1. In the OpenAPI spec file(s) where you want to propagate the incoming token, define the security scheme used by the endpoints you’re interested in. All endpoints may use the same security scheme if configured globally.
 e.g
 ```
@@ -104,7 +113,7 @@ With:
 
 Setting the `quarkus.oidc.*` properties will enforce the token validity check against the OIDC provider. Once successful, you will be able to use `$WORKFLOW.identity` in the workflow definition in order to get the identity of the user. See https://quarkus.io/guides/security-oidc-bearer-token-authentication and https://quarkus.io/guides/security-oidc-bearer-token-authentication-tutorial for more information.
 
-## Basic auth
+### Basic auth
 Basic auth token propagation is not currently supported.
 A pull request has been opened to add support for it: https://github.com/quarkiverse/quarkus-openapi-generator/pull/1078
 
