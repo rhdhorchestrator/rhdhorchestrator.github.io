@@ -164,13 +164,87 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
 
 1. **Prepare for installation**:
 
-   - Delete the Orchestrator CR and the Backstage CR that was previously used in v1.6
+Our goal is to disable Orchestrator operator and avoid it deleting important Sonataflow workloads, pods and databases.
 
-2. **Install RHDH v1.7 and Configure Orchestrator Plugin** using the [RHDH Operator](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/about_red_hat_developer_hub/index).
+- Disable the Orchestrator Operator controller `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators  --replicas=0`
+- Remove the Orchestrator label from the SonataflowPlatform resource. `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
+- Remove the Orchestrator label from the Openshift Serverless and Openshift Serverless Logic subscriptions:
+  `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
+  `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
 
-   Please follow the instructions to install RHDH v1.7 with orchestrator enabled, see the [README](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/docs/orchestrator.md).
+- Delete the Backstage CR
+- Uninstall the RHDH v1.6 Operator
+- Delete old configmaps used by RHDH (backup before) `delete old configmaps - oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+
+**Do not Delete the Orchestrator CR, as it's removal can delete important information that cannot be retrieved**
+
+2. **Configuring Orchestrator Plugins**:
 
    As of RHDH 1.7 all of the Orchestrator plugins are included in the default dynamic-plugins.yaml file of install-dynamic-plugins container but disabled by default. To enable the orchestrator plugin, you should refer the dynamic plugins ConfigMap with following data in your Backstage Custom Resource (CR) and put "false" under the "disabled" level.
+
+   The `backstage-plugin-scaffolder-backend-module-orchestrator-dynamic` and the `backstage-plugin-orchestrator-backend-dynamic` plugins require extra configurations that include the URL for the SonataFlow Data Index.
+
+   Edit the values.yaml in the appropriate places to use the namespace that holds SonataFlow resources.
+
+   ```yaml
+   pluginConfig:
+     orchestrator:
+       dataIndexService:
+         url: http://sonataflow-platform-data-index-service.{{ namespace }}
+   ```
+
+   Replace {{ namespace }} with 'sonataflow-infra', for example, or any other namespace you have previously installed your workflows and sonataflow resources in.
+
+   Your custom plugin configuration can look like this:
+
+   ```yaml
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: orchestrator-plugin
+   data:
+     dynamic-plugins.yaml: |
+       includes:
+         - dynamic-plugins.default.yaml
+       plugins:
+         - disabled: false
+           package: "https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator-backend-dynamic/-/backstage-plugin-orchestrator-backend-dynamic-1.6.0.tgz"
+           integrity: sha512-Kr55YbuVwEADwGef9o9wyimcgHmiwehPeAtVHa9g2RQYoSPEa6BeOlaPzB6W5Ke3M2bN/0j0XXtpLuvrlXQogA==
+           pluginConfig:
+             orchestrator:
+               dataIndexService:
+                 url: http://sonataflow-platform-data-index-service.sonataflow-infra
+         - disabled: false
+           package: "https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator/-/backstage-plugin-orchestrator-1.6.0.tgz"
+           integrity: sha512-fOSJv2PgtD2urKwBM7p9W6gV/0UIHSf4pkZ9V/wQO0eg0Zi5Mys/CL1ba3nO9x9l84MX11UBZ2r7PPVJPrmOtw==
+           pluginConfig:
+             dynamicPlugins:
+               frontend:
+                 red-hat-developer-hub.backstage-plugin-orchestrator:
+                   appIcons:
+                     - importName: OrchestratorIcon
+                       name: orchestratorIcon
+                   dynamicRoutes:
+                     - importName: OrchestratorPage
+                       menuItem:
+                         icon: orchestratorIcon
+                         text: Orchestrator
+                       path: /orchestrator
+         - disabled: false
+           package: "https://npm.registry.redhat.com/@redhat/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic/-/backstage-plugin-scaffolder-backend-module-orchestrator-dynamic-1.6.0.tgz"
+           integrity: sha512-Bueeix4661fXEnfJ9y31Yw91LXJgw6hJUG7lPVdESCi9VwBCjDB9Rm8u2yPqP8sriwr0OMtKtqD+Odn3LOPyVw==
+           pluginConfig:
+             orchestrator:
+               dataIndexService:
+                 url: http://sonataflow-platform-data-index-service.sonataflow-infra
+         - disabled: false
+           package: "https://npm.registry.redhat.com/@redhat/backstage-plugin-orchestrator-form-widgets/-/backstage-plugin-orchestrator-form-widgets-1.6.0.tgz"
+           integrity: sha512-Tqn6HO21Q1TQ7TFUoRhwBVCtSBzbQYz+OaanzzIB0R24O6YtVx3wR7Chtr5TzC05Vz5GkBO1+FZid8BKpqljgA==
+           pluginConfig:
+             dynamicPlugins:
+               frontend:
+                 red-hat-developer-hub.backstage-plugin-orchestrator-form-widgets: {}
+   ```
 
    Please note to _not_ include the dependencies for the orchestrator plugin:
 
@@ -180,60 +254,72 @@ We will be Installing RHDH v1.7 operator with Orchestrator enabled, but with the
      - ref: sonataflow
    ```
 
-   Adding the dependencies will trigger the new installation of Sonataflow resources. On this upgrade scenario, we would like to reuse our old sonataflow resources.
+   As we don't want the RHDH operator to install and additional SonataflowPlatform.
 
-3. **Update Orchestrator Plugins**:
-   The `backstage-plugin-scaffolder-backend-module-orchestrator-dynamic` and the `backstage-plugin-orchestrator-backend-dynamic` plugins require extra configurations that include the URL for the SonataFlow Data Index.
+3. **Install RHDH v1.7** using the [RHDH Operator](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/about_red_hat_developer_hub/index).
 
-   Edit the values.yaml in the appropriate places to use the namespace that holds SonataFlow resources.
+   You can use the Operator Hub UI to install RHDH 1.7. Please follow the instructions to install RHDH v1.7 with orchestrator enabled, see the [README](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/docs/orchestrator.md).
 
-   ```yaml
-   pluginConfig:
-     orchestrator:
-       dataIndexService:
-         url: http://sonataflow-platform-data-index-service.sonataflow-infra
-   ```
+4. **Prepare necessary configuration before creating the RHDH Instance**
 
-   Replace "sonataflow-infra" with the namespace you have previously installed your workflows and sonataflow resources in.
+   See [example](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/examples/orchestrator.yaml) for a complete configuration of the orchestrator plugin.
 
-   The plugins that require this configuration are the "backstage-plugin-scaffolder-backend-module-orchestrator-dynamic" and the "backstage-plugin-orchestrator-backend-dynamic".
+   You should have:
 
-4. **Post Install Configurations**:  
-   Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
+   - A configmap containing the enablement of the orchestrator plugins
+   - A secret with the BACKEND_SECRET key/value and update the secret name in the Backstage CR under the extraEnvs field. You should have one already configured from your old orchestrator setup.
+   - An "app-config-rhdh" containing your migrated App config from your v1.6 installation, containing any auth provider, integration etc.
 
-   ```console
-   oc create -f - <<EOF
-   apiVersion: networking.k8s.io/v1
-   kind: NetworkPolicy
-   metadata:
-     name: allow-infra-ns-to-workflow-ns
-     namespace: sonataflow-infra
-   spec:
-     podSelector: {}
-     ingress:
-       - from:
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the RHDH namespace.
-               kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the Workflow namespace.
-               kubernetes.io/metadata.name: ${WORKFLOW_NS}
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the Knative Eventing namespace.
-               kubernetes.io/metadata.name: knative-eventing
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the Knative Serving namespace.
-               kubernetes.io/metadata.name: knative-serving
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the openshift serverless logic namespace.
-               kubernetes.io/metadata.name: openshift-serverless-logic
-   EOF
-   ```
+   You also should have all operator pre-requisites already filled, namely:
+
+   ```Preparing to install OpenShift Serverless.
+      Installing the OpenShift Serverless Operator.
+      Installing Knative Serving.
+      Installing Knative Eventing.
+      Installing the OpenShift Serverless Logic Operator.
+      ```
+
+5. **Install the RHDH Instance via the RHDH UI**
+
+   While creating the Instance, make sure to edit your new Backstage CR like suggested in the Orchestrator example [here](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/examples/orchestrator.yaml).
+
+6. **Post Install Configurations**:
+
+Your old Network Policies should be intact, but in the case they were not migrated, Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
+
+```console
+oc create -f - <<EOF
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-infra-ns-to-workflow-ns
+  namespace: sonataflow-infra
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+      - namespaceSelector:
+          matchLabels:
+            # Allow traffic from pods in the RHDH namespace.
+            kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
+      - namespaceSelector:
+          matchLabels:
+            # Allow traffic from pods in the Workflow namespace.
+            kubernetes.io/metadata.name: ${WORKFLOW_NS}
+      - namespaceSelector:
+          matchLabels:
+            # Allow traffic from pods in the Knative Eventing namespace.
+            kubernetes.io/metadata.name: knative-eventing
+      - namespaceSelector:
+          matchLabels:
+            # Allow traffic from pods in the Knative Serving namespace.
+            kubernetes.io/metadata.name: knative-serving
+      - namespaceSelector:
+          matchLabels:
+            # Allow traffic from pods in the openshift serverless logic namespace.
+            kubernetes.io/metadata.name: openshift-serverless-logic
+EOF
+```
 
 ## Configuring a workflow from different namespace
 
