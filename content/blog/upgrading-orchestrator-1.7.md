@@ -74,7 +74,7 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
 
    The Helm installation will create a new SonataFlow Platform in the same namespace as RHDH. The installation will reuse your existing 'sonataflow' database if found. The same PostgreSQL instance will be used for both RHDH and SonataFlow.
 
-4. **Migrate workflows**: After installation, migrate any existing workflow deployments (SonataFlow CRs) to the RHDH namespace.
+4. **Migrate workflows**: After installation, you can migrate any existing workflow deployments (SonataFlow CRs) to the RHDH namespace.
 
 ## Upgrading with RHDH Helm Chart (Creating a new PostgreSQL instance for RHDH)
 
@@ -172,15 +172,15 @@ Our goal is to disable Orchestrator operator and avoid it deleting important Son
   `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
   `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
 
-- Delete the Backstage CR
+- Delete any running RHDH instance via the UI or by deleting the Backstage CR
 - Uninstall the RHDH v1.6 Operator
-- Delete old configmaps used by RHDH (backup before) `delete old configmaps - oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+- Delete old configmaps used by RHDH (backup before) `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
 
-**Do not Delete the Orchestrator CR, as it's removal can delete important information that cannot be retrieved**
+**Do not Delete the Orchestrator CR, as its removal can delete important resources that cannot be retrieved**
 
 2. **Configuring Orchestrator Plugins**:
 
-   As of RHDH 1.7 all of the Orchestrator plugins are included in the default dynamic-plugins.yaml file of install-dynamic-plugins container but disabled by default. To enable the orchestrator plugin, you should refer the dynamic plugins ConfigMap with following data in your Backstage Custom Resource (CR) and put "false" under the "disabled" level.
+   As of RHDH 1.7 all of the Orchestrator plugins are included in the default dynamic-plugins.yaml file of install-dynamic-plugins container, but disabled by default. To enable the orchestrator plugin, you should refer the dynamic plugins ConfigMap with following data in your Backstage Custom Resource (CR) and put "false" under the "disabled" level.
 
    The `backstage-plugin-scaffolder-backend-module-orchestrator-dynamic` and the `backstage-plugin-orchestrator-backend-dynamic` plugins require extra configurations that include the URL for the SonataFlow Data Index.
 
