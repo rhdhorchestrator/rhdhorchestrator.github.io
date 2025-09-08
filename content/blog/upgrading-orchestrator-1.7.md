@@ -353,7 +353,12 @@ Our goal is to disable the Orchestrator operator and avoid it deleting important
 
 3. **Install RHDH v1.7**: Use the [RHDH Operator](https://docs.redhat.com/en/documentation/red_hat_developer_hub/1.6/html/about_red_hat_developer_hub/index).
 
-   You can use the Operator Hub UI to install RHDH 1.7. Please follow the instructions to install RHDH v1.7 with Orchestrator enabled. See the [README](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/docs/orchestrator.md).
+   You can use the Operator Hub UI to install RHDH 1.7. Please follow the instructions to install RHDH v1.7 with Orchestrator enabled. See the [Installation guide](https://github.com/redhat-developer/rhdh-operator/blob/release-1.7/docs/orchestrator.md).
+   Please note that if you chose to install manually, that you should already have the following installed: 
+    - OpenShift Serverless Operator.
+    - OpenShift Serverless Logic Operator.
+    - Knative Serving.
+    - Knative Eventing.
 
 4. **Prepare necessary configuration before creating the RHDH instance**
 
@@ -364,15 +369,6 @@ Our goal is to disable the Orchestrator operator and avoid it deleting important
    - A ConfigMap containing the enablement of the orchestrator plugins
    - A secret with the BACKEND_SECRET key/value and update the secret name in the Backstage CR under the extraEnvs field. You should have one already configured from your old orchestrator setup
    - An "app-config-rhdh" containing your migrated app config from your v1.6 installation, containing any auth provider, integration, etc.
-
-   You should also have all operator prerequisites already filled, namely:
-
-    - Preparing to install OpenShift Serverless.
-    - Installing the OpenShift Serverless Operator.
-    - Installing Knative Serving.
-    - Installing Knative Eventing.
-    - Installing the OpenShift Serverless Logic Operator.
-    
 
 5. **Install the RHDH instance via the RHDH UI**
 
