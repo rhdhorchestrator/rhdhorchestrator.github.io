@@ -367,13 +367,12 @@ Our goal is to disable the Orchestrator operator and avoid it deleting important
 
    You should also have all operator prerequisites already filled, namely:
 
-   ```
-   Preparing to install OpenShift Serverless.
-   Installing the OpenShift Serverless Operator.
-   Installing Knative Serving.
-   Installing Knative Eventing.
-   Installing the OpenShift Serverless Logic Operator.
-   ```
+    - Preparing to install OpenShift Serverless.
+    - Installing the OpenShift Serverless Operator.
+    - Installing Knative Serving.
+    - Installing Knative Eventing.
+    - Installing the OpenShift Serverless Logic Operator.
+    
 
 5. **Install the RHDH instance via the RHDH UI**
 
