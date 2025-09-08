@@ -52,15 +52,26 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
 
 1. **Prepare for installation**:
 
-   - Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
-   - Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
+   - Disable the Orchestrator Operator controller:
+
+      `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
+   - Remove the Orchestrator label from the SonataFlowPlatform resource: 
+
+      `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
    - Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
-     `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
-     `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
+
+      ```bash 
+      oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true
+      oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true
+      ```
    - Delete any running RHDH instance via the UI or by deleting the Backstage CR
    - Uninstall the RHDH v1.6 Operator
-   - Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
-   - Delete old RHDH Postgres PVCs `oc delete pvc <pvc-name> -n rhdh`
+   - Delete old ConfigMaps used by RHDH (backup before):
+
+      `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+   - Delete old RHDH Postgres PVCs
+
+      `oc delete pvc <pvc-name> -n rhdh`
 
 **Do not delete the Orchestrator CR, as its removal can delete important resources that cannot be retrieved**
 
@@ -92,15 +103,26 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
 
 1. **Prepare for installation**:
 
-   - Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
-   - Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
+   - Disable the Orchestrator Operator controller:
+
+      `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
+   - Remove the Orchestrator label from the SonataFlowPlatform resource: 
+
+      `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
    - Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
-     `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
-     `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
+
+      ```bash 
+      oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true
+      oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true
+      ```
    - Delete any running RHDH instance via the UI or by deleting the Backstage CR
-   - Uninstall the RHDH v1.6 Operator and delete the ClusterServiceVersion
-   - Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
-   - Delete old RHDH Postgres PVCs `oc delete pvc <pvc-name> -n rhdh`
+   - Uninstall the RHDH v1.6 Operator
+   - Delete old ConfigMaps used by RHDH (backup before):
+
+      `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+   - Delete old RHDH Postgres PVCs
+
+      `oc delete pvc <pvc-name> -n rhdh`
 
 **Do not delete the Orchestrator CR, as its removal can delete important resources that cannot be retrieved**
 
@@ -227,14 +249,26 @@ We will be installing the RHDH v1.7 operator with Orchestrator enabled, but with
 
 Our goal is to disable the Orchestrator operator and avoid it deleting important SonataFlow workloads, pods, and databases.
 
-- Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
-- Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
-- Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
-  `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
-  `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
-- Delete any running RHDH instance via the UI or by deleting the Backstage CR
-- Uninstall the RHDH v1.6 Operator
-- Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+   - Disable the Orchestrator Operator controller:
+
+      `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
+   - Remove the Orchestrator label from the SonataFlowPlatform resource: 
+
+      `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
+   - Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
+
+      ```bash 
+      oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true
+      oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true
+      ```
+   - Delete any running RHDH instance via the UI or by deleting the Backstage CR
+   - Uninstall the RHDH v1.6 Operator
+   - Delete old ConfigMaps used by RHDH (backup before):
+
+      `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+   - Delete old RHDH Postgres PVCs
+
+      `oc delete pvc <pvc-name> -n rhdh`
 
 **Do not delete the Orchestrator CR, as its removal can delete important resources that cannot be retrieved**
 
