@@ -154,7 +154,7 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
          url: http://sonataflow-platform-data-index-service.sonataflow-infra
    ```
 
-   Replace "sonataflow-infra" with the namespace where you have previously installed your workflows and SonataFlow resources.
+   Replace `sonataflow-infra` with the namespace where you have previously installed your workflows and SonataFlow resources.
 
    Finally, Helm Install the Chart.
 
@@ -289,8 +289,9 @@ Our goal is to disable the Orchestrator operator and avoid it deleting important
 
    Replace {{ namespace }} with 'sonataflow-infra', for example, or any other namespace where you have previously installed your workflows and SonataFlow resources.
 
-   Your custom plugin configuration can look like this:
+   Your custom plugin configuration can look like the one [provided here](https://github.com/redhat-developer/rhdh-operator/blob/main/config/profile/rhdh/default-config/dynamic-plugins.yaml). That should contain the latest plugin versions that are released with the operator.
 
+   An example config:
    ```yaml
    apiVersion: v1
    kind: ConfigMap
