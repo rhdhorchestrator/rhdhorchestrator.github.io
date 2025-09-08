@@ -85,7 +85,6 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
 
    The Helm installation will create a new SonataFlow Platform in the same namespace as RHDH. The installation will reuse your existing 'sonataflow' database if found. The same PostgreSQL instance will be used for both RHDH and SonataFlow.
 
-4. **Migrate workflows**: After installation, you can migrate any existing workflow deployments (SonataFlow CRs) to the RHDH namespace.
 
 ## Upgrading with RHDH Helm Chart
 
@@ -138,7 +137,7 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
    Finally, Helm Install the Chart.
 
 3. **Post-Install Configuration**:  
-   Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows. This is crucial for the backstage pod to become live.
+   Configure these network policies to allow traffic only between RHDH, Knative, SonataFlow services, and workflows. This is crucial for the backstage pod to become live.
 
    ```yaml
      apiVersion: networking.k8s.io/v1
