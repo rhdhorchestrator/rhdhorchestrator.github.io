@@ -52,17 +52,19 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
 
 1. **Prepare for installation**:
 
-    - Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
-    - Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
-    - Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
-      `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
-      `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
-    - Delete any running RHDH instance via the UI or by deleting the Backstage CR
-    - Uninstall the RHDH v1.6 Operator
-    - Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+   - Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
+   - Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
+   - Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
+     `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
+     `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
+   - Delete any running RHDH instance via the UI or by deleting the Backstage CR
+   - Uninstall the RHDH v1.6 Operator
+   - Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+   - Delete old RHDH Postgres PVCs `oc delete pvc <pvc-name> -n rhdh`
 
 **Do not delete the Orchestrator CR, as its removal can delete important resources that cannot be retrieved**
 
+**Note**: There is no need for the orchestrator-infra chart, as you should already have OpenshiftServerless and OpenshiftServerlessLogic operators installed.
 
 2. **Configure external database connection**: Follow the [RHDH external database documentation](https://github.com/redhat-developer/rhdh-chart/blob/main/docs/external-db.md). Create a secret containing PostgreSQL connection properties. This guide will also have additional values for the Helm Chart that will be used in the next step.
 
@@ -85,27 +87,28 @@ In this upgrade scenario, we will reuse the PostgreSQL instance that was used fo
 
 4. **Migrate workflows**: After installation, you can migrate any existing workflow deployments (SonataFlow CRs) to the RHDH namespace.
 
-## Upgrading with RHDH Helm Chart (Creating a new PostgreSQL instance for RHDH)
-
-In this upgrade scenario, we will create a new PostgreSQL instance for RHDH to use while keeping intact all resources in the sonataflow-infra namespace, including the PostgreSQL instance used by the Orchestrator operator. After installation, we will reconfigure the Orchestrator plugins to point to the previously used PostgreSQL instance.
+## Upgrading with RHDH Helm Chart
 
 ### Steps
 
 1. **Prepare for installation**:
 
-    - Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
-    - Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
-    - Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
-      `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
-      `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
-    - Delete any running RHDH instance via the UI or by deleting the Backstage CR
-    - Uninstall the RHDH v1.6 Operator
-    - Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+   - Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
+   - Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
+   - Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
+     `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
+     `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
+   - Delete any running RHDH instance via the UI or by deleting the Backstage CR
+   - Uninstall the RHDH v1.6 Operator and delete the ClusterServiceVersion
+   - Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+   - Delete old RHDH Postgres PVCs `oc delete pvc <pvc-name> -n rhdh`
 
 **Do not delete the Orchestrator CR, as its removal can delete important resources that cannot be retrieved**
 
+**Note**: There is no need for the orchestrator-infra chart, as you should already have OpenshiftServerless and OpenshiftServerlessLogic operators installed.
 
 2. **Install RHDH v1.7 and Configure Orchestrator Plugin**: Use the [RHDH Helm Chart](https://github.com/redhat-developer/rhdh-chart/blob/main/charts/backstage).
+
    Make sure to include the following in the values.yaml:
 
    - Make sure to have "orchestrator" enabled and "serverlessLogicOperator" disabled.
@@ -135,40 +138,80 @@ In this upgrade scenario, we will create a new PostgreSQL instance for RHDH to u
    Finally, Helm Install the Chart.
 
 3. **Post-Install Configuration**:  
-   Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
+   Configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows. This is crucial for the backstage pod to become live.
 
-   ```console
-   oc create -f - <<EOF
-   apiVersion: networking.k8s.io/v1
-   kind: NetworkPolicy
-   metadata:
-     name: allow-infra-ns-to-workflow-ns
-     namespace: sonataflow-infra
-   spec:
-     podSelector: {}
-     ingress:
-       - from:
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the RHDH namespace.
-               kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the Workflow namespace.
-               kubernetes.io/metadata.name: ${WORKFLOW_NS}
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the Knative Eventing namespace.
-               kubernetes.io/metadata.name: knative-eventing
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the Knative Serving namespace.
-               kubernetes.io/metadata.name: knative-serving
-         - namespaceSelector:
-             matchLabels:
-               # Allow traffic from pods in the openshift serverless logic namespace.
-               kubernetes.io/metadata.name: openshift-serverless-logic
-   EOF
+   ```yaml
+     apiVersion: networking.k8s.io/v1
+     kind: NetworkPolicy
+     metadata:
+       name: rhdh-allow-knative-to-sonataflow-and-workflows
+       # Sonataflow and Workflows are using the RHDH target namespace.
+       namespace: rhdh
+     spec:
+       podSelector: {}
+       ingress:
+         - from:
+           - namespaceSelector:
+               matchLabels:
+                 # Allow knative events to be delivered to workflows.
+                 kubernetes.io/metadata.name: knative-eventing
+           - namespaceSelector:
+               matchLabels:
+                 # Allow auxiliary knative function for workflow (such as m2k-save-transformation)
+                 kubernetes.io/metadata.name: knative-serving
+     ---
+     apiVersion: networking.k8s.io/v1
+     kind: NetworkPolicy
+     metadata:
+       name: rhdh-allow-external-communication
+       namespace: rhdh
+     spec:
+       podSelector: {}
+       policyTypes:
+         - Ingress
+       ingress:
+         - from:
+           - namespaceSelector:
+               matchLabels:
+                 # Allow knative events to be delivered to workflows.
+                 policy-group.network.openshift.io/ingress: ""
+     ---
+     apiVersion: networking.k8s.io/v1
+     kind: NetworkPolicy
+     metadata:
+       name: rhdh-allow-intra-network
+       namespace: rhdh
+     spec:
+       # Apply this policy to all pods in the namespace
+       podSelector: {}
+       # Specify policy type as 'Ingress' to control incoming traffic rules
+       policyTypes:
+         - Ingress
+       ingress:
+         - from:
+           # Allow ingress from any pod within the same namespace
+           - podSelector: {}
+
+
+     ---
+     apiVersion: networking.k8s.io/v1
+     kind: NetworkPolicy
+     metadata:
+       name: rhdh-allow-monitoring-to-sonataflow-and-workflows
+       namespace: rhdh
+     spec:
+       # Apply this policy to all pods in the namespace
+       podSelector: {}
+       # Specify policy type as 'Ingress' to control incoming traffic rules
+       policyTypes:
+         - Ingress
+       ingress:
+         - from:
+           - namespaceSelector:
+               matchLabels:
+                 # Allow openshift-user-workload-monitoring pods to access the workflow.
+                 kubernetes.io/metadata.name: openshift-user-workload-monitoring
+
    ```
 
 ## Upgrading with RHDH Operator
@@ -185,14 +228,14 @@ We will be installing the RHDH v1.7 operator with Orchestrator enabled, but with
 
 Our goal is to disable the Orchestrator operator and avoid it deleting important SonataFlow workloads, pods, and databases.
 
-  - Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
-  - Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
-  - Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
-    `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
-    `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
-  - Delete any running RHDH instance via the UI or by deleting the Backstage CR
-  - Uninstall the RHDH v1.6 Operator
-  - Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
+- Disable the Orchestrator Operator controller: `oc scale deploy orchestrator-operator-controller-manager -n openshift-operators --replicas=0`
+- Remove the Orchestrator label from the SonataFlowPlatform resource: `oc label sonataflowplatform sonataflow-platform -n sonataflow-infra rhdh.redhat.com/created-by-`
+- Remove the Orchestrator label from the OpenShift Serverless and OpenShift Serverless Logic subscriptions:
+  `oc label subs serverless-operator -n openshift-serverless rhdh.redhat.com/created-by- || true`
+  `oc label subs logic-operator-rhel8 -n openshift-serverless-logic rhdh.redhat.com/created-by- || true`
+- Delete any running RHDH instance via the UI or by deleting the Backstage CR
+- Uninstall the RHDH v1.6 Operator
+- Delete old ConfigMaps used by RHDH (backup before): `oc delete cm -n rhdh -l rhdh.redhat.com/created-by=orchestrator`
 
 **Do not delete the Orchestrator CR, as its removal can delete important resources that cannot be retrieved**
 
@@ -304,41 +347,41 @@ Our goal is to disable the Orchestrator operator and avoid it deleting important
 
 6. **Post-Install Configuration**:
 
-    Your old network policies should be intact, but in case they were not migrated, configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
+   Your old network policies should be intact, but in case they were not migrated, configure a network policy to allow traffic only between RHDH, Knative, SonataFlow services, and workflows.
 
-    ```console
-    oc create -f - <<EOF
-    apiVersion: networking.k8s.io/v1
-    kind: NetworkPolicy
-    metadata:
-      name: allow-infra-ns-to-workflow-ns
-      namespace: sonataflow-infra
-    spec:
-      podSelector: {}
-      ingress:
-        - from:
-          - namespaceSelector:
-              matchLabels:
-                # Allow traffic from pods in the RHDH namespace.
-                kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
-          - namespaceSelector:
-              matchLabels:
-                # Allow traffic from pods in the Workflow namespace.
-                kubernetes.io/metadata.name: ${WORKFLOW_NS}
-          - namespaceSelector:
-              matchLabels:
-                # Allow traffic from pods in the Knative Eventing namespace.
-                kubernetes.io/metadata.name: knative-eventing
-          - namespaceSelector:
-              matchLabels:
-                # Allow traffic from pods in the Knative Serving namespace.
-                kubernetes.io/metadata.name: knative-serving
-          - namespaceSelector:
-              matchLabels:
-                # Allow traffic from pods in the openshift serverless logic namespace.
-                kubernetes.io/metadata.name: openshift-serverless-logic
-    EOF
-    ```
+   ```console
+   oc create -f - <<EOF
+   apiVersion: networking.k8s.io/v1
+   kind: NetworkPolicy
+   metadata:
+     name: allow-infra-ns-to-workflow-ns
+     namespace: sonataflow-infra
+   spec:
+     podSelector: {}
+     ingress:
+       - from:
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the RHDH namespace.
+               kubernetes.io/metadata.name: ${RHDH_INSTALL_NS}
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Workflow namespace.
+               kubernetes.io/metadata.name: ${WORKFLOW_NS}
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Eventing namespace.
+               kubernetes.io/metadata.name: knative-eventing
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the Knative Serving namespace.
+               kubernetes.io/metadata.name: knative-serving
+         - namespaceSelector:
+             matchLabels:
+               # Allow traffic from pods in the openshift serverless logic namespace.
+               kubernetes.io/metadata.name: openshift-serverless-logic
+   EOF
+   ```
 
 ## Configuring a workflow from different namespace
 
