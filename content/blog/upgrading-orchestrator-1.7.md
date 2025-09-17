@@ -1,3 +1,7 @@
+---
+date: 2025-09-18
+title: Upgrading from Orchestrator 1.6 to RHDH 1.7
+---
 # Upgrading from Orchestrator 1.6 to RHDH 1.7
 
 Starting with Red Hat Developer Hub (RHDH) v1.7, Orchestrator will be shipped as an integrated component of RHDH, available through both the RHDH operator and RHDH Helm Chart. Users currently running Orchestrator v1.6 cannot directly upgrade to "Orchestrator 1.7". Instead, they must install the new RHDH release with Orchestrator enabled and migrate their existing data and resources.
