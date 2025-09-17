@@ -14,10 +14,10 @@ The following images need to be added to the image registry:
 
 ### RHDH Operator:
 ```
-registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:8729c21dc4b6e1339ed29bf87e2e2054c8802f401a029ebb1f397408f3656664
-registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:f2d99c68895d8e99cfd132c78bc39be5f2d860737f6e7d2520167404880ed865
-registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:2f72c8706af43c0fbf8afc82d1925c77887aa7c3c3b1cb28f698bc4e4241ed4d
-registry.redhat.io/rhel9/postgresql-15@sha256:ddf4827c9093a0ec93b5b4f4fd31b009c7811c38a406187400ab448579036c6c
+registry.redhat.io/rhdh/rhdh-hub-rhel9@sha256:62f32e50727c5006766a34daa5b6472b649cd9894f3fe9543b8ecc67e6760e8e
+registry.redhat.io/rhdh/rhdh-operator-bundle@sha256:f743970668c72ff357ebfc910ddd5110c95a39754862d74d31e108c5993c5ace
+registry.redhat.io/rhdh/rhdh-rhel9-operator@sha256:d413b6ee53b6271644b9c5d2fc1dc266212b33e419380a6dddbf4613280dfd7a
+registry.redhat.io/rhel9/postgresql-15@sha256:4d707fc04f13c271b455f7b56c1fda9e232a62214ffc6213c02e41177dd4a13f
 ```
 
 ### OpenShift Serverless Operator:
@@ -94,11 +94,6 @@ registry.redhat.io/openshift4/ose-kube-rbac-proxy@sha256:4564ca3dc5bac80d6faddaf
 registry.redhat.io/openshift-serverless-1/logic-operator-bundle@sha256:5fff2717f7b08df2c90a2be7bfb36c27e13be188d23546497ed9ce266f1c03f4
 ```
 
-### Orchestrator Operator:
-```
-registry.redhat.io/rhdh-orchestrator-dev-preview-beta/controller-rhel9-operator@sha256:32e556fe067074d1f0ef0eb1f5483f62cc63d31a04c5fb2dcaea657a6471c081
-registry.redhat.io/rhdh-orchestrator-dev-preview-beta/orchestrator-operator-bundle@sha256:266366306f3977ae74e1ce3d06856a709d888163bf7423b6b941adfeb8ded6c2
-```
 
 > **Note:**  
 > If you encounter issues pulling images due to an invalid GPG signature, consider updating the `/etc/containers/policy.json` file to reference the appropriate beta GPG key.  
