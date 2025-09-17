@@ -10,11 +10,11 @@ On previous Orchestrator versions (<1.6), an RHDH operator installation was trig
 
 ### RHDH Operator
 
-- [Installation via RHDH Operator](orchestrator-on-rhdh-operator.md) - Complete setup using the RHDH Operator
+- [Installation via RHDH Operator](orchestrator-on-rhdh-operator/) - Complete setup using the RHDH Operator
 
 ### RHDH Helm Chart
 
-- [Installation via RHDH Chart](orchestrator-on-rhdh-chart.md) - Use Helm charts to install Orchestrator
+- [Installation via RHDH Chart](orchestrator-on-rhdh-chart/) - Use Helm charts to install Orchestrator
 
 ### Workflows
 

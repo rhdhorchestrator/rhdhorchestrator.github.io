@@ -11,8 +11,8 @@ This quickstart guide will help you install Orchestrator via Red Hat Developer H
 1. **Install Orchestrator via RHDH**:
    Choose one of the following installation methods:
 
-   - [Installation via RHDH Operator](/1.7/docs/installation/orchestrator-on-rhdh-operator/) - Recommended for most users
-   - [Installation via RHDH Chart](/1.7/docs/installation/orchestrator-on-rhdh-chart/) - For environments where the RHDH Operator is not available
+   - [Installation via RHDH Operator](../installation/orchestrator-on-rhdh-operator/) - Recommended for most users
+   - [Installation via RHDH Chart](../installation/orchestrator-on-rhdh-chart/) - For environments where the RHDH Operator is not available
 
 2. **Install a sample workflow**:
    Follow the [installation instructions for the greetings workflow](https://github.com/rhdhorchestrator/serverless-workflows/blob/main/deploy/docs/release-1.7/greeting/README.md).
