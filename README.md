@@ -1,4 +1,4 @@
-This [site](rhdhorchestrator.github.io) is built by hugo static site generater and published using a github action to [https://rhdhorchestrator.io](https://rhdhorchestrator.io)
+This [site](rhdhorchestrator.github.io) is built by hugo static site generator and published using a github action to [https://rhdhorchestrator.io](https://rhdhorchestrator.io)
 
 # Devleopment
 - Requirements
