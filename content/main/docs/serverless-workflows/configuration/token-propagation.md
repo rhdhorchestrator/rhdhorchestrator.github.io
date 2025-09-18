@@ -129,7 +129,7 @@ functions:
 
 You can see a full example here: https://github.com/rhdhorchestrator/workflow-token-propagation-example.
 
-# Configuring OIDC properties at SonataFlowPlatform level (Cluster-wide OIDC configuration) 
+# Configuring OIDC properties at SonataFlowPlatform level (Cluster-wide OIDC configuration) {#platform-oidc}
 This short guide shows how to inject the Quarkus OIDC settings once at platform‑scope so that all present and future workflows automatically authenticate incoming requests and expose $WORKFLOW.identity.
 
 # Prerequisites

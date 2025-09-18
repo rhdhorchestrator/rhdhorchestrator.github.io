@@ -8,7 +8,7 @@ See the upstream reference for full details: Token Exchange for OpenAPI services
 
 # Prerequisites
 * Keycloak or another OIDC provider that supports OAuth 2.0 Token Exchange
-* A workflow calling an OpenAPI client generated from an OpenAPI spec using an `oauth2` security scheme
+* A workflow calling an OpenAPI client generated from an OpenAPI specification file using an `oauth2` security scheme
 
 # Build
 
@@ -24,7 +24,7 @@ See https://github.com/rhdhorchestrator/orchestrator-demo/blob/main/scripts/buil
 
 # Configuration
 
-## 1) Define an OAuth2 security scheme in your OpenAPI
+## 1) Define an OAuth2 security scheme in your OpenAPI specification file
 
 The OpenAPI operation(s) you call must be secured by an `oauth2` scheme. The OIDC client name is derived from this scheme name (sanitized by replacing non‑alphanumerics with `_`).
 
@@ -108,15 +108,17 @@ With:
 
 Do not enable token propagation for the same `<auth_name>` if you need token exchange. If both are enabled, propagation takes precedence and no exchange is performed.
 
-If you do need propagation for other services/schemes, configure per service and auth name (example):
+If you do need propagation in another specification file having a similar scheme name, configure per scheme name on the specification level:
 ```
-quarkus.openapi-generator.<service_id>.auth.<auth_name>.token-propagation=true
-quarkus.openapi-generator.<service_id>.auth.<auth_name>.header-name=X-Authorization-<provider>
+quarkus.openapi-generator.<another_service_id>.auth.<auth_name>.token-propagation=true
+quarkus.openapi-generator.<another_service_id>.auth.<auth_name>.header-name=X-Authorization-<provider>
 ```
 
 # Caching and persistence
 
-When enabled, exchanged tokens are cached per process instance and auth name, with proactive refresh before expiry. By default, an in‑memory cache is used. To persist cache entries, add the JDBC persistence extension:
+When enabled, exchanged tokens are cached per process instance and auth name, with proactive refresh before expiry. By default, an in‑memory cache is used. To persist cache entries, add the JDBC persistence extension in the `QUARKUS_EXTENSIONS` when building the image: see https://sonataflow-docs-preview-pr-737.surge.sh/serverlessworkflow/latest/cloud/operator/build-and-deploy-workflows.html#passing-build-arguments-to-internal-workflow-builder
+
+For local debug/dev, you can add it in your local `pom.xml` file:
 
 ```
 <dependency>
@@ -149,71 +151,10 @@ curl -X POST \
 ```
 
 # Notes
-* Security scheme names are global in an OpenAPI file; all operations using the same scheme share the same OIDC client and token‑exchange configuration.
+* Security scheme names are global in an OpenAPI specification file; all operations using the same scheme share the same OIDC client and `token‑exchange` configuration.
 * Prefer enabling `kogito.persistence.headers.enabled=true` for long‑running workflows so the incoming token is available after wait/resume or restarts.
 * For a general comparison and configuration of forwarding the original token, see the token propagation guide in this folder.
 
 
 # Configuring OIDC properties at SonataFlowPlatform level (Cluster‑wide OIDC configuration)
-This optional setup injects Quarkus OIDC settings once at platform scope so all workflows authenticate incoming requests and expose `$WORKFLOW.identity`. Token Exchange configuration still requires per‑application auth scheme enablement (the `sonataflow.security.auth.<auth_name>.token-exchange.enabled=true` property), but the base OIDC properties can be centralized.
-
-# Prerequisites
-* Namespace where the workflows run
-* Keycloak Realm URL
-* Client‑ID
-* Client‑secret
-
-### Assumption: workflows and the platform run in namespace `sonataflow-infra`.
-```
-export TARGET_NS='sonataflow-infra'
-```
-
-Keep the client secret in a Secret; don’t embed clear‑text in the CR.
-
-## Create the supporting Secret
-```
-oc create secret generic oidc-client-secret \
-  -n $TARGET_NS \
-  --from-literal=cred=swf-client-secret  # sample value; replace with actual
-```
-
-## Patch the SonataFlowPlatform CR
-Create `patch.yaml` (replace placeholders):
-```
-spec:
-  properties:
-    flow:
-    - name: quarkus.oidc.auth-server-url
-      value: https://keycloak-host/realms/dev
-    - name: quarkus.oidc.client-id
-      value: swf-client
-    - name: quarkus.oidc.token.header
-      value: X-Authorization
-    - name: quarkus.oidc.token.issuer
-      value: any
-    - name: quarkus.oidc.credentials.secret
-      valueFrom:
-        secretKeyRef:
-          key: cred
-          name: oidc-client-secret
-```
-
-Apply the patch:
-```
-oc patch sonataflowplatform <platform-name> \
-  -n $TARGET_NS \
-  --type merge \
-  -p "$(cat patch.yaml)"
-```
-
-Verify managed properties:
-```
-oc get sonataflowplatform <platform-name> -n $TARGET_NS -o yaml
-```
-
-Restart workflow deployments so Quarkus reloads the file:
-```
-oc rollout restart deployment -l sonataflow.org/workflow -n $TARGET_NS
-```
-
-
+To avoid duplication, follow the platform‑level OIDC setup here: [Configuring OIDC properties at SonataFlowPlatform level](../token-propagation/#platform-oidc). This centralizes incoming request authentication and `$WORKFLOW.identity`. For Token Exchange, you still need to enable it per auth scheme using `sonataflow.security.auth.<auth_name>.token-exchange.enabled=true`.
