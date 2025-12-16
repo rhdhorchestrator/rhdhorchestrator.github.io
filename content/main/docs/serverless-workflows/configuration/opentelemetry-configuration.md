@@ -23,7 +23,7 @@ The OpenTelemetry integration for SonataFlow provides:
 - **Log Aggregation**: Centralized logging with trace correlation
 - **Context Propagation**: Maintain trace context across workflow boundaries and async operations
 
-> **Note**: The OpenTelemetry feature is available in SonataFlow runtime through the `sonataflow-quarkus-otel-extension` extension, which provides comprehensive observability capabilities with minimal configuration overhead.
+> **Note**: The OpenTelemetry feature is available in SonataFlow runtime through the `sonataflow-addons-quarkus-opentelemetry` addon, which provides comprehensive observability capabilities with minimal configuration overhead.
 
 ## Architecture Overview
 
@@ -67,10 +67,10 @@ To enable OpenTelemetry in your SonataFlow workflow, add the extension to your p
 
 **1. Add Extension Dependency**
 
-Add the Sonataflow Open Telemetry extension in the `QUARKUS_EXTENSIONS` environment variable when building the workflow image:
+Add the SonataFlow OpenTelemetry addon in the `QUARKUS_EXTENSIONS` environment variable when building the workflow image:
 
 ```
-export QUARKUS_EXTENSIONS="${QUARKUS_EXTENSIONS},org.apache.kie.sonataflow:sonataflow-quarkus-otel-extension"
+export QUARKUS_EXTENSIONS="${QUARKUS_EXTENSIONS},org.apache.kie.sonataflow:sonataflow-addons-quarkus-opentelemetry"
 ```
 
 
@@ -101,14 +101,22 @@ quarkus.otel.resource.attributes=\
   deployment.environment=production
 
 # SonataFlow Specific Configuration
+# Master switch for SonataFlow OpenTelemetry integration
 sonataflow.otel.enabled=true
-sonataflow.otel.serviceName=${quarkus.application.name:sonataflow-workflow-service}
-sonataflow.otel.serviceVersion=${quarkus.application.version:unknown}
+# Service identification (uses Quarkus application name/version as defaults)
+sonataflow.otel.service-name=${quarkus.application.name:kogito-workflow-service}
+sonataflow.otel.service-version=${quarkus.application.version:unknown}
+# Enable span creation for workflow states
 sonataflow.otel.spans.enabled=true
+# Enable process lifecycle events (start, complete, error, state transitions)
 sonataflow.otel.events.enabled=true
 
 # Context Propagation
 quarkus.otel.propagators=tracecontext,baggage,jaeger
+
+# SonataFlow-specific context headers (in addition to standard OpenTelemetry headers)
+# X-TRANSACTION-ID: Correlates all workflow executions within a business transaction
+# X-TRACKER-*: Custom tracking headers for additional context (e.g., X-TRACKER-CORRELATION-ID)
 
 # Instrumentation
 quarkus.datasource.jdbc.telemetry=true
@@ -549,31 +557,51 @@ When your SonataFlow workflow runs with OpenTelemetry enabled, it generates comp
 
 ### Trace Spans
 
-SonataFlow automatically creates spans for:
+SonataFlow automatically creates spans for workflow states. The spans are:
 
-- **Process execution** - Overall workflow span with process ID and version
-- **Node execution** - Individual spans for each workflow node/state
-- **Function calls** - HTTP calls to external services with full context
-- **Error handling** - Spans marked with error status and details
+- **Grouped by workflow state** - Each distinct workflow state gets its own span, reducing noise from individual node executions. Process start events are attached to the first state span, and process complete events are attached to the final state span.
+- **Flat hierarchy for all workflow spans** - All workflow spans (including subflows) share the same root span context and appear as flat siblings under the HTTP request span. This creates a cleaner trace visualization where subflow spans are NOT nested children of the subprocess invocation state, but rather siblings with the main workflow spans.
+- **Named consistently** - Span names follow the pattern `sonataflow.process.<processId>.execute`
 
-Example span attributes generated:
-```
-sonataflow.process.instance.id: greeting-abc123-456-789
-sonataflow.process.id: greeting
-sonataflow.process.version: 1.0.0
-sonataflow.process.instance.state: ACTIVE
-sonataflow.process.instance.node: ChooseOnLanguage
-service.name: greeting-workflow
-service.namespace: workflows
-```
+#### Span Attributes
 
-### Events and Logs
+Each span includes these SonataFlow-specific attributes:
 
-Process events are automatically added:
-- `process.instance.start` - When workflow begins
-- `NODE_STARTED` - When each node begins execution
-- `NODE_COMPLETED` - When each node finishes
-- Log events with trace correlation
+| Attribute | Description | Example |
+|-----------|-------------|---------|
+| `sonataflow.process.instance.id` | Unique workflow instance identifier | `greeting-abc123-456-789` |
+| `sonataflow.process.id` | Workflow definition ID | `greeting` |
+| `sonataflow.process.version` | Workflow version | `1.0.0` |
+| `sonataflow.process.instance.state` | Current process state | `ACTIVE`, `COMPLETED`, `ERROR` |
+| `sonataflow.workflow.state` | Current workflow state name | `ChooseOnLanguage` |
+| `sonataflow.transaction.id` | Transaction ID from `X-TRANSACTION-ID` header or process instance ID | `tx-12345` |
+| `service.name` | Service name from configuration | `greeting-workflow` |
+| `service.version` | Service version from configuration | `1.0.0` |
+
+**Custom Tracker Attributes**: When `X-TRACKER-*` headers are provided, they appear as `sonataflow.tracker.*` attributes. For example, `X-TRACKER-CORRELATION-ID: abc123` becomes `sonataflow.tracker.correlation.id: abc123`.
+
+### Process Lifecycle Events
+
+The following events are automatically added to spans:
+
+| Event Name | Description | Attributes |
+|------------|-------------|------------|
+| `process.instance.start` | Workflow execution begins | `process.instance.id`, `trigger`, `reference.id` |
+| `process.instance.complete` | Workflow execution ends | `process.instance.id`, `outcome`, `duration.ms` |
+| `process.instance.error` | Workflow encounters an error | `process.instance.id`, `error.message`, `error.type` |
+| `state.started` | Workflow state execution begins | `event.description` |
+| `state.completed` | Workflow state execution ends | `event.description` |
+
+### Context Propagation via HTTP Headers
+
+SonataFlow extracts and propagates context from these HTTP headers:
+
+| Header | Purpose | Example |
+|--------|---------|---------|
+| `X-TRANSACTION-ID` | Correlate multiple workflow executions in a business transaction | `X-TRANSACTION-ID: order-tx-12345` |
+| `X-TRACKER-*` | Custom tracking context (converted to span attributes) | `X-TRACKER-USER-ID: user123` |
+
+These headers are sanitized (max 100 characters, special characters removed) and stored as span attributes for correlation and debugging.
 
 ### Metrics
 
@@ -754,9 +782,9 @@ quarkus.log.console.json=true
 
 ### Verification Steps
 
-**1. Check OpenTelemetry extension is loaded:**
+**1. Check OpenTelemetry addon is loaded:**
 ```bash
-kubectl logs -n workflows deployment/onboarding-workflow | grep "sonataflow-quarkus-otel"
+kubectl logs -n workflows deployment/onboarding-workflow | grep "sonataflow-addons-quarkus-opentelemetry"
 ```
 
 **2. Verify trace export:**

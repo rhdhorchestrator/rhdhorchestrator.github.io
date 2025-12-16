@@ -70,6 +70,118 @@ export QUARKUS_EXTENSIONS="${QUARKUS_EXTENSIONS},io.quarkus:quarkus-logging-json
 
 **Note**: This extension is **required** for JSON log formatting. Without it, logs will remain in plain text format.
 
+## File-Based JSON Logging
+
+In some deployment scenarios, you may need to output logs to a file instead of (or in addition to) the console. This is useful when:
+
+- Using sidecar containers that read log files (e.g., Fluent Bit file input)
+- Integrating with legacy log collection systems that expect file-based logs
+- Debugging locally with persistent log files
+- Collecting logs from environments where stdout/stderr collection is limited
+
+### Basic File Logging Configuration
+
+Add the following properties to enable JSON logging to a file:
+
+```properties
+# Enable file logging
+quarkus.log.file.enable=true
+quarkus.log.file.path=/var/log/sonataflow/workflow.log
+
+# Enable JSON format for file output
+quarkus.log.file.json=true
+quarkus.log.file.json.pretty-print=false
+
+# Include MDC context fields (processInstanceId, traceId, spanId)
+quarkus.log.file.json.print-details=true
+
+# Set log level for file output
+quarkus.log.file.level=INFO
+```
+
+### File Rotation Configuration
+
+For production environments, configure log rotation to prevent disk space issues:
+
+```properties
+# Enable file logging with rotation
+quarkus.log.file.enable=true
+quarkus.log.file.path=/var/log/sonataflow/workflow.log
+
+# JSON format
+quarkus.log.file.json=true
+quarkus.log.file.json.pretty-print=false
+quarkus.log.file.json.print-details=true
+
+# Rotation settings
+quarkus.log.file.rotation.max-file-size=10M
+quarkus.log.file.rotation.max-backup-index=5
+quarkus.log.file.rotation.file-suffix=.yyyy-MM-dd
+quarkus.log.file.rotation.rotate-on-boot=true
+```
+
+This configuration:
+- Rotates logs when they reach 10MB
+- Keeps up to 5 backup files
+- Adds date suffix to rotated files
+- Rotates on application startup
+
+### Combined Console and File Logging
+
+You can enable both console and file JSON logging simultaneously:
+
+```properties
+# Console JSON logging (for container log collectors)
+quarkus.log.console.json=true
+quarkus.log.console.json.pretty-print=false
+quarkus.log.console.json.print-details=true
+
+# File JSON logging (for file-based collectors)
+quarkus.log.file.enable=true
+quarkus.log.file.path=/var/log/sonataflow/workflow.log
+quarkus.log.file.json=true
+quarkus.log.file.json.pretty-print=false
+quarkus.log.file.json.print-details=true
+quarkus.log.file.rotation.max-file-size=10M
+quarkus.log.file.rotation.max-backup-index=5
+```
+
+### Kubernetes Volume Configuration
+
+When using file-based logging in Kubernetes, ensure the log directory is properly mounted:
+
+```yaml
+apiVersion: sonataflow.org/v1alpha08
+kind: SonataFlow
+metadata:
+  name: my-workflow
+spec:
+  podTemplate:
+    container:
+      volumeMounts:
+      - name: logs
+        mountPath: /var/log/sonataflow
+    volumes:
+    - name: logs
+      emptyDir: {}
+```
+
+For persistent logs or sidecar collection, use a shared volume:
+
+```yaml
+spec:
+  podTemplate:
+    container:
+      volumeMounts:
+      - name: shared-logs
+        mountPath: /var/log/sonataflow
+    initContainers: []
+    volumes:
+    - name: shared-logs
+      emptyDir:
+        sizeLimit: 500Mi
+```
+
 ## Validation
 
 Before deploying log aggregation, verify that JSON logging is working correctly:
@@ -186,7 +298,11 @@ helm install loki-stack grafana/loki-stack \
 
 ### Promtail Configuration
 
-Configure Promtail to discover and parse SonataFlow logs:
+Configure Promtail to discover and parse SonataFlow logs. You can choose between scraping container stdout (default) or custom JSON log files.
+
+#### Option A: Scrape Container Stdout (Default)
+
+This configuration uses Kubernetes service discovery to collect logs from container stdout:
 
 ```yaml
 apiVersion: v1
@@ -238,6 +354,105 @@ data:
           traceId:
 ```
 
+#### Option B: Scrape JSON Log Files
+
+When using [file-based JSON logging](#file-based-json-logging), configure Promtail as a sidecar to read from the shared log volume:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: promtail-sidecar-config
+  namespace: sonataflow-infra
+data:
+  config.yml: |
+    server:
+      http_listen_port: 3101
+
+    clients:
+      - url: http://loki.sonataflow-observability.svc.cluster.local:3100/loki/api/v1/push
+
+    positions:
+      filename: /var/log/positions.yaml
+
+    scrape_configs:
+    - job_name: sonataflow-json-files
+      static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: sonataflow-workflows
+          __path__: /var/log/sonataflow/*.log
+
+      pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            logger: loggerName
+            message: message
+            processInstanceId: mdc.processInstanceId
+            traceId: mdc.traceId
+            spanId: mdc.spanId
+
+      - labels:
+          level:
+          logger:
+          processInstanceId:
+          traceId:
+
+      - timestamp:
+          source: timestamp
+          format: RFC3339Nano
+```
+
+**Promtail Sidecar Deployment:**
+
+Add Promtail as a sidecar container in your SonataFlow CR:
+
+```yaml
+apiVersion: sonataflow.org/v1alpha08
+kind: SonataFlow
+metadata:
+  name: my-workflow
+  namespace: sonataflow-infra
+spec:
+  podTemplate:
+    container:
+      volumeMounts:
+      - name: shared-logs
+        mountPath: /var/log/sonataflow
+    containers:
+    - name: promtail-sidecar
+      image: grafana/promtail:2.9.0
+      args:
+        - -config.file=/etc/promtail/config.yml
+      volumeMounts:
+      - name: shared-logs
+        mountPath: /var/log/sonataflow
+        readOnly: true
+      - name: promtail-config
+        mountPath: /etc/promtail
+      - name: positions
+        mountPath: /var/log
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+    volumes:
+    - name: shared-logs
+      emptyDir:
+        sizeLimit: 500Mi
+    - name: promtail-config
+      configMap:
+        name: promtail-sidecar-config
+    - name: positions
+      emptyDir: {}
+```
+
 ### Query Examples
 
 **Filter logs by process instance:**
@@ -287,6 +502,12 @@ helm install fluent-bit fluent/fluent-bit \
 
 ### Fluent Bit Configuration
 
+You can configure Fluent Bit to collect logs from container stdout or from custom JSON log files.
+
+#### Option A: Scrape Container Logs (Default)
+
+This configuration collects logs from the standard Kubernetes container log location:
+
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -326,6 +547,111 @@ data:
         Index           sonataflow-logs-%Y.%m.%d
         Type            _doc
         Logstash_Format On
+```
+
+#### Option B: Scrape JSON Log Files (Sidecar)
+
+When using [file-based JSON logging](#file-based-json-logging), deploy Fluent Bit as a sidecar to read from the shared log volume:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluent-bit-sidecar-config
+  namespace: sonataflow-infra
+data:
+  custom_parsers.conf: |
+    [PARSER]
+        Name        sonataflow_json
+        Format      json
+        Time_Key    timestamp
+        Time_Format %Y-%m-%dT%H:%M:%S.%L%z
+
+  fluent-bit.conf: |
+    [SERVICE]
+        Flush         1
+        Log_Level     info
+        Parsers_File  /fluent-bit/etc/custom_parsers.conf
+
+    [INPUT]
+        Name              tail
+        Path              /var/log/sonataflow/*.log
+        Parser            sonataflow_json
+        Tag               sonataflow.*
+        Refresh_Interval  5
+        Mem_Buf_Limit     50MB
+        Read_from_Head    True
+        DB                /var/log/flb_sonataflow.db
+
+    [FILTER]
+        Name          modify
+        Match         sonataflow.*
+        Add           kubernetes.namespace_name ${NAMESPACE}
+        Add           kubernetes.pod_name ${POD_NAME}
+
+    [OUTPUT]
+        Name            es
+        Match           sonataflow.*
+        Host            opensearch.logging.svc.cluster.local
+        Port            9200
+        Index           sonataflow-logs-%Y.%m.%d
+        Type            _doc
+        Logstash_Format On
+        Retry_Limit     5
+```
+
+**Fluent Bit Sidecar Deployment:**
+
+Add Fluent Bit as a sidecar container in your SonataFlow CR:
+
+```yaml
+apiVersion: sonataflow.org/v1alpha08
+kind: SonataFlow
+metadata:
+  name: my-workflow
+  namespace: sonataflow-infra
+spec:
+  podTemplate:
+    container:
+      volumeMounts:
+      - name: shared-logs
+        mountPath: /var/log/sonataflow
+    containers:
+    - name: fluent-bit-sidecar
+      image: fluent/fluent-bit:2.2
+      env:
+      - name: NAMESPACE
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.namespace
+      - name: POD_NAME
+        valueFrom:
+          fieldRef:
+            fieldPath: metadata.name
+      volumeMounts:
+      - name: shared-logs
+        mountPath: /var/log/sonataflow
+        readOnly: true
+      - name: fluent-bit-config
+        mountPath: /fluent-bit/etc
+      - name: fluent-bit-db
+        mountPath: /var/log
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+    volumes:
+    - name: shared-logs
+      emptyDir:
+        sizeLimit: 500Mi
+    - name: fluent-bit-config
+      configMap:
+        name: fluent-bit-sidecar-config
+    - name: fluent-bit-db
+      emptyDir: {}
 ```
 
 ### OpenSearch Query Examples
