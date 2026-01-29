@@ -28,10 +28,10 @@ When properly configured, workflow logs are emitted as JSON with the following s
 {
   "timestamp": "2025-11-24T10:30:45.123Z",
   "level": "INFO",
-  "logger": "org.kie.kogito.workflow.engine",
+  "loggerName": "org.kie.kogito.workflow.engine",
   "message": "Workflow step completed successfully",
-  "thread": "executor-thread-1",
-  "MDC": {
+  "threadName": "executor-thread-1",
+  "mdc": {
     "processInstanceId": "abc-123-def-456"
   }
 }
@@ -48,7 +48,9 @@ To enable JSON logging for your workflows, configure the following properties in
 quarkus.log.console.json=true
 quarkus.log.console.json.pretty-print=false
 
-# Include all MDC context fields (processInstanceId, traceId, spanId) in JSON output
+# Include all MDC context fields in JSON output
+# - processInstanceId: Set automatically by SonataFlow/Kogito
+# - traceId, spanId: Set by Quarkus OpenTelemetry (requires quarkus.otel.enabled=true)
 quarkus.log.console.json.print-details=true
 
 # Configure log levels for workflow components
@@ -92,7 +94,9 @@ quarkus.log.file.path=/var/log/sonataflow/workflow.log
 quarkus.log.file.json=true
 quarkus.log.file.json.pretty-print=false
 
-# Include MDC context fields (processInstanceId, traceId, spanId)
+# Include MDC context fields in JSON output
+# - processInstanceId: Set automatically by SonataFlow/Kogito
+# - traceId, spanId: Set by Quarkus OpenTelemetry (requires quarkus.otel.enabled=true)
 quarkus.log.file.json.print-details=true
 
 # Set log level for file output
@@ -343,9 +347,9 @@ data:
             level: level
             logger: logger
             message: message
-            processInstanceId: MDC.processInstanceId
-            traceId: MDC.traceId
-            spanId: MDC.spanId
+            processInstanceId: mdc.processInstanceId
+            traceId: mdc.traceId
+            spanId: mdc.spanId
 
       - labels:
           level:

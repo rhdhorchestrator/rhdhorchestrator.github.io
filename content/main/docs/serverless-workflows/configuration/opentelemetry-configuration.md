@@ -110,7 +110,11 @@ sonataflow.otel.service-version=${quarkus.application.version:unknown}
 sonataflow.otel.spans.enabled=true
 # Enable process lifecycle events (start, complete, error, state transitions)
 sonataflow.otel.events.enabled=true
+```
 
+> **Note**: The `sonataflow.otel.enabled` property controls SonataFlow-specific instrumentation. This works in conjunction with `quarkus.otel.enabled` which controls the underlying Quarkus OpenTelemetry integration. Both should be enabled for full observability.
+
+```properties
 # Context Propagation
 quarkus.otel.propagators=tracecontext,baggage,jaeger
 
@@ -591,6 +595,7 @@ The following events are automatically added to spans:
 | `process.instance.error` | Workflow encounters an error | `process.instance.id`, `error.message`, `error.type` |
 | `state.started` | Workflow state execution begins | `event.description` |
 | `state.completed` | Workflow state execution ends | `event.description` |
+| `log.message` | Application log during workflow execution | `level`, `logger`, `message`, `thread.name`, `thread.id` |
 
 ### Context Propagation via HTTP Headers
 
